@@ -14,40 +14,6 @@ import (
 )
 
 func main() {
-	// build an Uppercasing input
-	m := &strsvcv1.Request{
-		Message: &strsvcv1.Request_UpperCase{
-			UpperCase: &strsvcv1.UpperCase{
-				Input: "Foo",
-			},
-		},
-	}
-	marshalledM, err := proto.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	body := base64.StdEncoding.EncodeToString(marshalledM)
-
-	simulate(body)
-
-	// build an Uppercasing input
-	m = &strsvcv1.Request{
-		Message: &strsvcv1.Request_LowerCase{
-			LowerCase: &strsvcv1.LowerCase{
-				Input: "Bar",
-			},
-		},
-	}
-	marshalledM, err = proto.Marshal(m)
-	if err != nil {
-		panic(err)
-	}
-	body = base64.StdEncoding.EncodeToString(marshalledM)
-
-	simulate(body)
-}
-
-func simulate(body string) {
 	// setup endpoint with it's middlewares
 	c := box.NewChainBuilder[*strsvcv1.Request, *strsvcv1.Response](
 		strsvc.LoggingMiddleware,
@@ -70,22 +36,49 @@ func simulate(body string) {
 		ep,
 	)
 
-	// simulate SQS invocation
-	sqsResp := sqsHandler.Handle(
-		context.Background(),
-		&events.SQSEvent{Records: []events.SQSMessage{
-			{Body: body},
-		}},
-	)
-	log.Printf("sqs: %#v", sqsResp)
-
-	// simulate APIGateway invocation
-	apiGWResp, err := apiGWHandler.Handle(
-		context.Background(),
-		&events.APIGatewayProxyRequest{Body: body},
-	)
-	if err != nil {
-		panic(err)
+	// test input
+	requests := []*strsvcv1.Request{
+		{
+			Message: &strsvcv1.Request_UpperCase{
+				UpperCase: &strsvcv1.UpperCase{
+					Input: "Foo",
+				},
+			},
+		},
+		{
+			Message: &strsvcv1.Request_LowerCase{
+				LowerCase: &strsvcv1.LowerCase{
+					Input: "Bar",
+				},
+			},
+		},
 	}
-	log.Printf("api gw: %#v", apiGWResp)
+
+	// simular incoming events via lambda.Start
+	for _, m := range requests {
+		marshalledM, err := proto.Marshal(m)
+		if err != nil {
+			panic(err)
+		}
+		body := base64.StdEncoding.EncodeToString(marshalledM)
+
+		// simulate SQS invocation
+		sqsResp := sqsHandler.Handle(
+			context.Background(),
+			&events.SQSEvent{Records: []events.SQSMessage{
+				{Body: body},
+			}},
+		)
+		log.Printf("sqs: %#v", sqsResp)
+
+		// simulate APIGateway invocation
+		apiGWResp, err := apiGWHandler.Handle(
+			context.Background(),
+			&events.APIGatewayProxyRequest{Body: body},
+		)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("api gw: %#v", apiGWResp)
+	}
 }
