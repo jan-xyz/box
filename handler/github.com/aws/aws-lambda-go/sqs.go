@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/jan-xyz/box"
 )
 func NewSQSHandler[TIn, TOut any](
 	fifo bool,
 	decode func(events.SQSMessage) (TIn, error),
 	encode func(TOut) error,
-	endpoint func(context.Context, TIn) (TOut, error),
+	endpoint box.Endpoint[TIn, TOut],
 ) SQSHandler {
 	return sqsHandler[TIn, TOut]{
 		fifo:     fifo,
@@ -29,7 +30,7 @@ type sqsHandler[TIn, TOut any] struct {
 	fifo     bool
 	decode   func(events.SQSMessage) (TIn, error)
 	encode   func(TOut) error
-	endpoint func(context.Context, TIn) (TOut, error)
+	endpoint box.Endpoint[TIn, TOut]
 }
 
 func (s sqsHandler[TIn, TOut]) Handle(ctx context.Context, e *events.SQSEvent) *events.SQSEventResponse {
@@ -45,7 +46,7 @@ func (s sqsHandler[TIn, TOut]) Handle(ctx context.Context, e *events.SQSEvent) *
 		if err != nil {
 			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{ItemIdentifier: r.MessageId})
 		}
-		out, err := s.endpoint(ctx, in)
+		out, err := s.endpoint.EP(ctx, in)
 		if err != nil {
 			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{ItemIdentifier: r.MessageId})
 		}

@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/jan-xyz/box"
 )
 func NewAPIGatewayHandler[TIn, TOut any](
 	decode func(*events.APIGatewayProxyRequest) (TIn, error),
 	encode func(TOut) (*events.APIGatewayProxyResponse, error),
 	encodeError func(error) (*events.APIGatewayProxyResponse, error),
-	endpoint func(context.Context, TIn) (TOut, error),
+	endpoint box.Endpoint[TIn, TOut],
 ) APIGatewayHandler {
 	return apiGatewayHandler[TIn, TOut]{
 		decode:      decode,
@@ -27,7 +28,7 @@ type apiGatewayHandler[TIn, TOut any] struct {
 	decode      func(*events.APIGatewayProxyRequest) (TIn, error)
 	encode      func(TOut) (*events.APIGatewayProxyResponse, error)
 	encodeError func(error) (*events.APIGatewayProxyResponse, error)
-	endpoint    func(context.Context, TIn) (TOut, error)
+	endpoint    box.Endpoint[TIn, TOut]
 }
 
 func (s apiGatewayHandler[TIn, TOut]) Handle(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
@@ -35,7 +36,7 @@ func (s apiGatewayHandler[TIn, TOut]) Handle(ctx context.Context, req *events.AP
 	if err != nil {
 		return s.encodeError(err)
 	}
-	out, err := s.endpoint(ctx, in)
+	out, err := s.endpoint.EP(ctx, in)
 	if err != nil {
 		return s.encodeError(err)
 	}

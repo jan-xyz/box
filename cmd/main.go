@@ -15,7 +15,7 @@ func main() {
 	c := box.NewChainBuilder[strsvc.StringRequest, strsvc.StringResponse](
 		strsvc.LoggingMiddleware,
 	)
-	ep := c.Build(strsvc.NewEndpoint()).EP
+	ep := c.Build(strsvc.NewEndpoint())
 
 	// connect endpoint to SQS
 	sqsHandler := awslambdago.NewSQSHandler(
