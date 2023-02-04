@@ -1,29 +1,34 @@
 package strsvc
 
 import (
+	"encoding/base64"
 	"errors"
 	"log"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/jan-xyz/box/internal/strsvc/proto/strsvcv1"
+	"google.golang.org/protobuf/proto"
 )
 
 var errNoUpper = errors.New("unable to uppercase name")
 
-func EncodeSQS(resp StringResponse) error {
-	if resp.UpperCaseName != "" {
-		return nil
+func EncodeSQS(resp *strsvcv1.Response) error {
+	if resp.GetResult() == "" {
+		return errNoUpper
 	}
-	return errNoUpper
+	return nil
 }
 
-func EncodeAPIGateway(resp StringResponse) (*events.APIGatewayProxyResponse, error) {
-	if resp.UpperCaseName == "" {
-		return nil, errNoUpper
+func EncodeAPIGateway(m *strsvcv1.Response) (*events.APIGatewayProxyResponse, error) {
+	resp, err := proto.Marshal(m)
+	if err != nil {
+		return nil, err
 	}
+	body := base64.StdEncoding.EncodeToString(resp)
 	return &events.APIGatewayProxyResponse{
 		StatusCode:        http.StatusOK,
-		Body:              resp.UpperCaseName,
+		Body:              body,
 	}, nil
 }
 

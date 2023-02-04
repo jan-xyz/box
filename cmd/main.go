@@ -2,17 +2,54 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
 	awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
 	"github.com/jan-xyz/box/internal/strsvc"
+	"github.com/jan-xyz/box/internal/strsvc/proto/strsvcv1"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
-	// setup endpoint
-	c := box.NewChainBuilder[strsvc.StringRequest, strsvc.StringResponse](
+	// build an Uppercasing input
+	m := &strsvcv1.Request{
+		Message: &strsvcv1.Request_UpperCase{
+			UpperCase: &strsvcv1.UpperCase{
+				Input: "Foo",
+			},
+		},
+	}
+	marshalledM, err := proto.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	body := base64.StdEncoding.EncodeToString(marshalledM)
+
+	simulate(body)
+
+	// build an Uppercasing input
+	m = &strsvcv1.Request{
+		Message: &strsvcv1.Request_LowerCase{
+			LowerCase: &strsvcv1.LowerCase{
+				Input: "Bar",
+			},
+		},
+	}
+	marshalledM, err = proto.Marshal(m)
+	if err != nil {
+		panic(err)
+	}
+	body = base64.StdEncoding.EncodeToString(marshalledM)
+
+	simulate(body)
+}
+
+func simulate(body string) {
+	// setup endpoint with it's middlewares
+	c := box.NewChainBuilder[*strsvcv1.Request, *strsvcv1.Response](
 		strsvc.LoggingMiddleware,
 	)
 	ep := c.Build(strsvc.NewEndpoint())
@@ -25,15 +62,6 @@ func main() {
 		ep,
 	)
 
-	// simulate SQS invocation
-	sqsResp := sqsHandler.Handle(
-		context.Background(),
-		&events.SQSEvent{Records: []events.SQSMessage{
-			{Body: "foo"},
-		}},
-	)
-	log.Printf("sqs: %#v", sqsResp)
-
 	// connect endpoint to APIGateway
 	apiGWHandler := awslambdago.NewAPIGatewayHandler(
 		strsvc.DecodeAPIGateway,
@@ -42,13 +70,22 @@ func main() {
 		ep,
 	)
 
+	// simulate SQS invocation
+	sqsResp := sqsHandler.Handle(
+		context.Background(),
+		&events.SQSEvent{Records: []events.SQSMessage{
+			{Body: body},
+		}},
+	)
+	log.Printf("sqs: %#v", sqsResp)
+
 	// simulate APIGateway invocation
 	apiGWResp, err := apiGWHandler.Handle(
 		context.Background(),
-		&events.APIGatewayProxyRequest{Body: "bar"},
+		&events.APIGatewayProxyRequest{Body: body},
 	)
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("sqs: %#v", apiGWResp)
+	log.Printf("api gw: %#v", apiGWResp)
 }

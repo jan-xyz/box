@@ -13,8 +13,17 @@ tracer trace.Tracer
 }
 
 func (t tracingMiddleware) UpperCase(ctx context.Context, s string) (string, error){
-	t.tracer.Start(ctx, "UpperCase", attribute.String("input", s))
+	ctx, span := t.tracer.Start(ctx, "UpperCase")
+	span.SetAttributes(attribute.String("input", s))
 
 	return t.svc.UpperCase(ctx, s)
+
+}
+
+func (t tracingMiddleware) LowerCase(ctx context.Context, s string) (string, error){
+	ctx, span := t.tracer.Start(ctx, "LowerCase")
+	span.SetAttributes(attribute.String("input", s))
+
+	return t.svc.LowerCase(ctx, s)
 
 }

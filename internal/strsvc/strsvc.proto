@@ -1,0 +1,22 @@
+syntax = "proto3";
+package strsvc.v1;
+option go_package = "./strsvcv1";
+
+message Request {
+  oneof message {
+    LowerCase lower_case = 1;
+    UpperCase upper_case = 2;
+  }
+}
+
+message LowerCase {
+  string input = 1;
+}
+
+message UpperCase {
+  string input = 1;
+}
+
+message Response {
+string result = 1;
+}

@@ -1,15 +1,37 @@
 package strsvc
 
-import "github.com/aws/aws-lambda-go/events"
+import (
+	"encoding/base64"
 
-func DecodeSQS(m events.SQSMessage) (StringRequest, error) {
-	return StringRequest{
-		Name: m.Body,
-	}, nil
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/jan-xyz/box/internal/strsvc/proto/strsvcv1"
+	"google.golang.org/protobuf/proto"
+)
+
+func DecodeSQS(m events.SQSMessage) (*strsvcv1.Request, error) {
+	body, err := base64.StdEncoding.DecodeString(m.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := &strsvcv1.Request{}
+	err = proto.Unmarshal(body, msg)
+	if err != nil {
+		return nil, err
+	}
+	return msg, nil
 }
 
-func DecodeAPIGateway(r *events.APIGatewayProxyRequest) (StringRequest, error) {
-	return StringRequest{
-		Name: r.Body,
-	}, nil
+func DecodeAPIGateway(r *events.APIGatewayProxyRequest) (*strsvcv1.Request, error) {
+	body, err := base64.StdEncoding.DecodeString(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := &strsvcv1.Request{}
+	err = proto.Unmarshal(body, msg)
+	if err != nil {
+		return nil, err
+	}
+	return msg, nil
 }

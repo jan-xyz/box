@@ -2,35 +2,45 @@ package strsvc
 
 import (
 	"context"
+	"errors"
+	"log"
 
+	"github.com/jan-xyz/box/internal/strsvc/proto/strsvcv1"
 	"go.opentelemetry.io/otel"
 )
 
-type StringRequest struct {
-	Name string
-}
-type StringResponse struct {
-	UpperCaseName string
+type StringEndpoint interface {
+	EP(ctx context.Context, req *strsvcv1.Request) (*strsvcv1.Response, error)
 }
 
 func NewEndpoint() StringEndpoint {
 	var svc Service = &service{}
 	svc = tracingMiddleware{svc: svc, tracer: otel.Tracer("strsvc")}
-	return endpointer{svc: svc}
+	return endpoint{svc: svc}
 }
 
-type endpointer struct {
+type endpoint struct {
 	svc Service
 }
 
-func (e endpointer) EP(ctx context.Context, req StringRequest) (StringResponse, error) {
-	upper, err := e.svc.UpperCase(ctx, req.Name)
-	if err != nil {
-		return StringResponse{}, err
-	}
-	return StringResponse{UpperCaseName: upper}, nil
-}
+var errUknown = errors.New("unknown message")
 
-type StringEndpoint interface {
-	EP(ctx context.Context, req StringRequest) (StringResponse, error)
+func (e endpoint) EP(ctx context.Context, req *strsvcv1.Request) (*strsvcv1.Response, error) {
+	switch m := req.GetMessage().(type) {
+	case *strsvcv1.Request_LowerCase:
+		upper, err := e.svc.LowerCase(ctx, m.LowerCase.GetInput())
+		if err != nil {
+			return &strsvcv1.Response{}, err
+		}
+		return &strsvcv1.Response{Result: upper}, nil
+	case *strsvcv1.Request_UpperCase:
+		upper, err := e.svc.UpperCase(ctx, m.UpperCase.GetInput())
+		if err != nil {
+			return &strsvcv1.Response{}, err
+		}
+		return &strsvcv1.Response{Result: upper}, nil
+	default:
+		log.Printf("unhandled message: %T", m)
+	}
+	return nil, errUknown
 }
