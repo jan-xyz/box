@@ -2,6 +2,8 @@ package strsvc
 
 import (
 	"context"
+
+	"go.opentelemetry.io/otel"
 )
 
 type StringRequest struct {
@@ -12,7 +14,8 @@ type StringResponse struct {
 }
 
 func NewEndpoint() StringEndpoint {
-	svc := &service{}
+	var svc Service = &service{}
+	svc = tracingMiddleware{svc: svc, tracer: otel.Tracer("strsvc")}
 	return endpointer{svc: svc}
 }
 

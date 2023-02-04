@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
+	awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
 	"github.com/jan-xyz/box/internal/strsvc"
 )
 
@@ -17,7 +18,7 @@ func main() {
 	ep := c.Build(strsvc.NewEndpoint()).EP
 
 	// connect endpoint to SQS
-	sqsHandler := box.NewSQSHandler(
+	sqsHandler := awslambdago.NewSQSHandler(
 		false,
 		strsvc.DecodeSQS,
 		strsvc.EncodeSQS,
@@ -34,7 +35,7 @@ func main() {
 	log.Printf("sqs: %#v", sqsResp)
 
 	// connect endpoint to APIGateway
-	apiGWHandler := box.NewAPIGatewayHandler(
+	apiGWHandler := awslambdago.NewAPIGatewayHandler(
 		strsvc.DecodeAPIGateway,
 		strsvc.EncodeAPIGateway,
 		strsvc.EncodeErrorAPIGateway,
