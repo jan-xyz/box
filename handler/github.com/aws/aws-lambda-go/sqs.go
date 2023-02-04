@@ -9,13 +9,11 @@ import (
 func NewSQSHandler[TIn, TOut any](
 	fifo bool,
 	decode func(events.SQSMessage) (TIn, error),
-	encode func(TOut) error,
 	endpoint box.Endpoint[TIn, TOut],
 ) SQSHandler {
 	return sqsHandler[TIn, TOut]{
 		fifo:     fifo,
 		decode:   decode,
-		encode:   encode,
 		endpoint: endpoint,
 	}
 }
@@ -29,7 +27,6 @@ type sqsHandler[TIn, TOut any] struct {
 	// and the order should be preserved on record failures
 	fifo     bool
 	decode   func(events.SQSMessage) (TIn, error)
-	encode   func(TOut) error
 	endpoint box.Endpoint[TIn, TOut]
 }
 
@@ -46,11 +43,7 @@ func (s sqsHandler[TIn, TOut]) Handle(ctx context.Context, e *events.SQSEvent) *
 		if err != nil {
 			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{ItemIdentifier: r.MessageId})
 		}
-		out, err := s.endpoint.EP(ctx, in)
-		if err != nil {
-			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{ItemIdentifier: r.MessageId})
-		}
-		err = s.encode(out)
+		_, err = s.endpoint.EP(ctx, in)
 		if err != nil {
 			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{ItemIdentifier: r.MessageId})
 		}

@@ -16,6 +16,7 @@ type StringEndpoint interface {
 func NewEndpoint() StringEndpoint {
 	var svc Service = &service{}
 	svc = tracingMiddleware{svc: svc, tracer: otel.Tracer("strsvc")}
+	svc = validationMiddleware{svc: svc}
 	return endpoint{svc: svc}
 }
 

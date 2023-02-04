@@ -24,7 +24,6 @@ func main() {
 	sqsHandler := awslambdago.NewSQSHandler(
 		false,
 		strsvc.DecodeSQS,
-		strsvc.EncodeSQS,
 		ep,
 	)
 
@@ -52,6 +51,13 @@ func main() {
 				},
 			},
 		},
+		{
+			Message: &strsvcv1.Request_LowerCase{
+				LowerCase: &strsvcv1.LowerCase{
+					Input: "",
+				},
+			},
+		},
 	}
 
 	// simular incoming events via lambda.Start
@@ -66,7 +72,7 @@ func main() {
 		sqsResp := sqsHandler.Handle(
 			context.Background(),
 			&events.SQSEvent{Records: []events.SQSMessage{
-				{Body: body},
+				{Body: body, MessageId: "the message"},
 			}},
 		)
 		log.Printf("sqs: %#v", sqsResp)
