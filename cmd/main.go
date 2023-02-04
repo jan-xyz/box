@@ -10,11 +10,13 @@ import (
 )
 
 func main() {
-	// setup handler
+	// setup endpoint
 	c := box.NewChainBuilder[strsvc.StringRequest, strsvc.StringResponse](
 		strsvc.LoggingMiddleware,
 	)
 	ep := c.Build(strsvc.NewEndpoint()).EP
+
+	// connect endpoint to SQS
 	sqsHandler := box.NewSQSHandler(
 		false,
 		strsvc.DecodeSQS,
@@ -22,7 +24,7 @@ func main() {
 		ep,
 	)
 
-	// Setup Lambda
+	// simulate SQS invocation
 	sqsResp := sqsHandler.Handle(
 		context.Background(),
 		&events.SQSEvent{Records: []events.SQSMessage{
@@ -31,6 +33,7 @@ func main() {
 	)
 	log.Printf("sqs: %#v", sqsResp)
 
+	// connect endpoint to APIGateway
 	apiGWHandler := box.NewAPIGatewayHandler(
 		strsvc.DecodeAPIGateway,
 		strsvc.EncodeAPIGateway,
@@ -38,6 +41,7 @@ func main() {
 		ep,
 	)
 
+	// simulate APIGateway invocation
 	apiGWResp, err := apiGWHandler.Handle(
 		context.Background(),
 		&events.APIGatewayProxyRequest{Body: "bar"},
