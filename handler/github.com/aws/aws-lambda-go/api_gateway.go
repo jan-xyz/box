@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
 )
+
 func NewAPIGatewayHandler[TIn, TOut any](
 	decode func(*events.APIGatewayProxyRequest) (TIn, error),
 	encode func(TOut) (*events.APIGatewayProxyResponse, error),

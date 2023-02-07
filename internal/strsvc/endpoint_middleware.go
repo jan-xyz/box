@@ -29,4 +29,3 @@ var LoggingMiddleware = middlewareWrapper(func(next StringEndpoint) StringEndpoi
 		return resp, err
 	})
 })
-

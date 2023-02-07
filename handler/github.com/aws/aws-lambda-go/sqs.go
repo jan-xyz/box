@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
 )
+
 func NewSQSHandler[TIn, TOut any](
 	fifo bool,
 	decode func(events.SQSMessage) (TIn, error),

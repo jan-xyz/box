@@ -29,7 +29,7 @@ func (t tracingMiddleware) LowerCase(ctx context.Context, s string) (string, err
 }
 
 type validationMiddleware struct {
-	svc    Service
+	svc Service
 }
 
 func (t validationMiddleware) UpperCase(ctx context.Context, s string) (string, error) {

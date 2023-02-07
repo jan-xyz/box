@@ -10,8 +10,8 @@ type Middleware[TIn, TOut any] interface {
 	MW(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut]
 }
 
-func NewChainBuilder[TIn, TOut any](outer Middleware[TIn, TOut], others ...Middleware[TIn,TOut]) Chain[TIn, TOut] {
-	return Chain[TIn,TOut]{
+func NewChainBuilder[TIn, TOut any](outer Middleware[TIn, TOut], others ...Middleware[TIn, TOut]) Chain[TIn, TOut] {
+	return Chain[TIn, TOut]{
 		outer:  outer,
 		others: others,
 	}
