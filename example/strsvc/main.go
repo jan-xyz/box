@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
+	strsvc "github.com/jan-xyz/box/example/strsvc/lambda"
+	"github.com/jan-xyz/box/example/strsvc/lambda/proto/strsvcv1"
 	awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
-	"github.com/jan-xyz/box/internal/strsvc"
-	"github.com/jan-xyz/box/internal/strsvc/proto/strsvcv1"
 	"google.golang.org/protobuf/proto"
 )
 

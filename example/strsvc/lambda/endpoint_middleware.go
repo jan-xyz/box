@@ -1,11 +1,11 @@
-package strsvc
+package lambda
 
 import (
 	"context"
 	"log"
 
 	"github.com/jan-xyz/box"
-	"github.com/jan-xyz/box/internal/strsvc/proto/strsvcv1"
+	"github.com/jan-xyz/box/example/strsvc/lambda/proto/strsvcv1"
 )
 
 type endpointWrapper func(ctx context.Context, req *strsvcv1.Request) (*strsvcv1.Response, error)

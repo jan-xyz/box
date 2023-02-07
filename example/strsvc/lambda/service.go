@@ -1,4 +1,4 @@
-package strsvc
+package lambda
 
 import (
 	"context"

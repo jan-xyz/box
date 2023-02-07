@@ -1,11 +1,11 @@
-package strsvc
+package lambda
 
 import (
 	"context"
 	"errors"
 	"log"
 
-	"github.com/jan-xyz/box/internal/strsvc/proto/strsvcv1"
+	"github.com/jan-xyz/box/example/strsvc/lambda/proto/strsvcv1"
 	"go.opentelemetry.io/otel"
 )
 

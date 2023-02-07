@@ -1,4 +1,4 @@
-package strsvc
+package lambda
 
 import (
 	"encoding/base64"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/jan-xyz/box/internal/strsvc/proto/strsvcv1"
+	"github.com/jan-xyz/box/example/strsvc/lambda/proto/strsvcv1"
 	"google.golang.org/protobuf/proto"
 )
 
