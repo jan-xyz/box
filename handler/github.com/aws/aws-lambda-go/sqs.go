@@ -43,10 +43,12 @@ func (s sqsHandler[TIn, TOut]) Handle(ctx context.Context, e *events.SQSEvent) *
 		in, err := s.decode(r)
 		if err != nil {
 			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{ItemIdentifier: r.MessageId})
+			continue
 		}
 		_, err = s.endpoint.EP(ctx, in)
 		if err != nil {
 			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{ItemIdentifier: r.MessageId})
+			continue
 		}
 	}
 	return resp
