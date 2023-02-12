@@ -10,13 +10,15 @@ import (
 	strsvc "github.com/jan-xyz/box/example/strsvc/lambda"
 	"github.com/jan-xyz/box/example/strsvc/lambda/proto/strsvcv1"
 	awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
+	"go.opentelemetry.io/otel"
 	"google.golang.org/protobuf/proto"
 )
 
 func main() {
 	// setup endpoint with it's middlewares
 	mw := box.Chain(
-		strsvc.LoggingMiddleware,
+		strsvc.EndpointLogging(),
+		strsvc.EndpointTracing(otel.Tracer("strsvc")),
 	)
 	ep := mw(strsvc.NewEndpoint().EP)
 

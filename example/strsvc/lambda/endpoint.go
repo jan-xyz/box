@@ -9,9 +9,11 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
+var tracer = otel.Tracer("strsvc")
+
 func NewEndpoint() endpoint {
 	var svc Service = &service{}
-	svc = tracingMiddleware{svc: svc, tracer: otel.Tracer("strsvc")}
+	svc = tracingMiddleware{svc: svc, tracer: tracer}
 	svc = validationMiddleware{svc: svc}
 	return endpoint{svc: svc}
 }
