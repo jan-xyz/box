@@ -19,15 +19,18 @@ func NewChainBuilder[TIn, TOut any](outer Middleware[TIn, TOut], others ...Middl
 	}
 }
 
-type EndpointWrapper[TIn, TOut any] func(ctx context.Context, req TIn) (TOut, error)
+// EndpointFunc is a helper function to create an [Endpoint] from just a function.
+type EndpointFunc[TIn, TOut any] func(ctx context.Context, req TIn) (TOut, error)
 
-func (ep EndpointWrapper[TIn, TOut]) EP(ctx context.Context, req TIn) (TOut, error) {
+func (ep EndpointFunc[TIn, TOut]) EP(ctx context.Context, req TIn) (TOut, error) {
 	return ep(ctx, req)
 }
 
-type MiddlewareWrapper[TIn, TOut any] func(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut]
+// MiddlewareFunc is a helper function to create a Middelware from just a function
+// when combined with an [EndpointFunc]
+type MiddlewareFunc[TIn, TOut any] func(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut]
 
-func (mw MiddlewareWrapper[TIn, TOut]) MW(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut] {
+func (mw MiddlewareFunc[TIn, TOut]) MW(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut] {
 	return mw(next)
 }
 
