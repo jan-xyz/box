@@ -15,10 +15,10 @@ import (
 
 func main() {
 	// setup endpoint with it's middlewares
-	c := box.NewChainBuilder(
+	mw := box.Chain(
 		strsvc.LoggingMiddleware,
 	)
-	ep := c.Build(strsvc.NewEndpoint())
+	ep := mw(strsvc.NewEndpoint())
 
 	// connect endpoint to SQS
 	sqsHandler := awslambdago.NewSQSHandler(

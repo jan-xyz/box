@@ -22,23 +22,11 @@ func (ep EndpointFunc[TIn, TOut]) EP(ctx context.Context, req TIn) (TOut, error)
 	return ep(ctx, req)
 }
 
-// NewChainBuilder constructs a [Chain] which can be finalized by calling [Chain.Build] on it.
-func NewChainBuilder[TIn, TOut any](outer Middleware[TIn, TOut], others ...Middleware[TIn, TOut]) Chain[TIn, TOut] {
-	return Chain[TIn, TOut]{
-		outer:  outer,
-		others: others,
+func Chain[TIn, TOut any](outer Middleware[TIn, TOut], others ...Middleware[TIn, TOut]) Middleware[TIn, TOut] {
+	return func(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut] {
+		for i := len(others) - 1; i >= 0; i-- { // reverse
+			next = others[i](next)
+		}
+		return outer(next)
 	}
-}
-
-type Chain[TIn, TOut any] struct {
-	outer  Middleware[TIn, TOut]
-	others []Middleware[TIn, TOut]
-}
-
-// Build creates a [Middleware] chain around the [Endpoint] provided as [next]
-func (c Chain[TIn, TOut]) Build(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut] {
-	for i := len(c.others) - 1; i >= 0; i-- { // reverse
-		next = c.others[i](next)
-	}
-	return c.outer(next)
 }

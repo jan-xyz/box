@@ -23,7 +23,7 @@ func TestChain(t *testing.T) {
 	}
 
 	// setup endpoint with it's middlewares
-	c := NewChainBuilder(
+	mw := Chain(
 		recordingMiddleware("first"),
 		recordingMiddleware("second"),
 		recordingMiddleware("third"),
@@ -34,7 +34,7 @@ func TestChain(t *testing.T) {
 		return "response", nil
 	})
 
-	ep = c.Build(ep)
+	ep = mw(ep)
 
 	resp, err := ep.EP(context.Background(), "request")
 
