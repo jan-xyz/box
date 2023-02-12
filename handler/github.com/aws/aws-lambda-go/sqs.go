@@ -45,7 +45,7 @@ func (s sqsHandler[TIn, TOut]) Handle(ctx context.Context, e *events.SQSEvent) *
 			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{ItemIdentifier: r.MessageId})
 			continue
 		}
-		_, err = s.endpoint.EP(ctx, in)
+		_, err = s.endpoint(ctx, in)
 		if err != nil {
 			resp.BatchItemFailures = append(resp.BatchItemFailures, events.SQSBatchItemFailure{ItemIdentifier: r.MessageId})
 			continue

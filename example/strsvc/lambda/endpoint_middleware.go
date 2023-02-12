@@ -9,10 +9,10 @@ import (
 )
 
 var LoggingMiddleware = box.Middleware[*strsvcv1.Request, *strsvcv1.Response](func(next box.Endpoint[*strsvcv1.Request, *strsvcv1.Response]) box.Endpoint[*strsvcv1.Request, *strsvcv1.Response] {
-	return box.EndpointFunc[*strsvcv1.Request, *strsvcv1.Response](func(ctx context.Context, req *strsvcv1.Request) (*strsvcv1.Response, error) {
+	return box.Endpoint[*strsvcv1.Request, *strsvcv1.Response](func(ctx context.Context, req *strsvcv1.Request) (*strsvcv1.Response, error) {
 		log.Printf("incoming: %s", req)
 
-		resp, err := next.EP(ctx, req)
+		resp, err := next(ctx, req)
 		log.Printf("outgoing: %s", resp)
 		return resp, err
 	})

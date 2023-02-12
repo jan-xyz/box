@@ -13,9 +13,9 @@ func TestChain(t *testing.T) {
 
 	recordingMiddleware := func(name string) Middleware[string, string] {
 		return Middleware[string, string](func(next Endpoint[string, string]) Endpoint[string, string] {
-			return EndpointFunc[string, string](func(ctx context.Context, req string) (string, error) {
+			return Endpoint[string, string](func(ctx context.Context, req string) (string, error) {
 				records = append(records, fmt.Sprintf("inc-%s", name))
-				resp, err := next.EP(ctx, req)
+				resp, err := next(ctx, req)
 				records = append(records, fmt.Sprintf("out-%s", name))
 				return resp, err
 			})
@@ -29,14 +29,14 @@ func TestChain(t *testing.T) {
 		recordingMiddleware("third"),
 	)
 
-	var ep Endpoint[string, string] = EndpointFunc[string, string](func(_ context.Context, req string) (string, error) {
+	ep := Endpoint[string, string](func(_ context.Context, req string) (string, error) {
 		records = append(records, req)
 		return "response", nil
 	})
 
 	ep = mw(ep)
 
-	resp, err := ep.EP(context.Background(), "request")
+	resp, err := ep(context.Background(), "request")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "response", resp)
