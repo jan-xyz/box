@@ -41,7 +41,7 @@ func (e endpoint) EP(ctx context.Context, req *strsvcv1.Request) (*strsvcv1.Resp
 		}
 		return &strsvcv1.Response{Result: upper}, nil
 	default:
-		log.Printf("unhandled message: %T", m)
+		log.Printf("unhandled request: %T", m)
 	}
 	return nil, errUknown
 }
