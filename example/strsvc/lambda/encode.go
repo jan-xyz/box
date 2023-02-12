@@ -33,3 +33,22 @@ func EncodeErrorAPIGateway(err error) (*events.APIGatewayProxyResponse, error) {
 		Body:       "oops, an error happened",
 	}, nil
 }
+
+func EncodeHTTP(m *strsvcv1.Response, w http.ResponseWriter) {
+	resp, err := proto.Marshal(m)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(resp)
+}
+
+func EncodeErrorHTTP(err error, w http.ResponseWriter) {
+	if errors.Is(err, errNoUpper) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(err.Error()))
+}

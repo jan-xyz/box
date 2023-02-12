@@ -1,15 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"log"
+	"net/http/httptest"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
 	strsvc "github.com/jan-xyz/box/example/strsvc/lambda"
 	"github.com/jan-xyz/box/example/strsvc/lambda/proto/strsvcv1"
 	awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
+	boxhttp "github.com/jan-xyz/box/handler/net/http"
 	"go.opentelemetry.io/otel"
 	"google.golang.org/protobuf/proto"
 )
@@ -34,6 +37,14 @@ func main() {
 		strsvc.DecodeAPIGateway,
 		strsvc.EncodeAPIGateway,
 		strsvc.EncodeErrorAPIGateway,
+		ep,
+	)
+
+	// connect to HTTP
+	httpServer := boxhttp.NewHTTPServer(
+		strsvc.DecodeHTTP,
+		strsvc.EncodeHTTP,
+		strsvc.EncodeErrorHTTP,
 		ep,
 	)
 
@@ -88,5 +99,13 @@ func main() {
 			panic(err)
 		}
 		log.Printf("api gw: %#v", apiGWResp)
+
+		// simulate HTTP invocation
+		srv := httptest.NewServer(httpServer)
+		httpResp, err := srv.Client().Post(srv.URL, "binary", bytes.NewReader(marshalledM))
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("http: %#v", httpResp)
 	}
 }
