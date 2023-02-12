@@ -9,11 +9,7 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-type StringEndpoint interface {
-	EP(ctx context.Context, req *strsvcv1.Request) (*strsvcv1.Response, error)
-}
-
-func NewEndpoint() StringEndpoint {
+func NewEndpoint() endpoint {
 	var svc Service = &service{}
 	svc = tracingMiddleware{svc: svc, tracer: otel.Tracer("strsvc")}
 	svc = validationMiddleware{svc: svc}
