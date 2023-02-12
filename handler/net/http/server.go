@@ -27,6 +27,7 @@ type httpServer[TIn, TOut any] struct {
 	endpoint    box.Endpoint[TIn, TOut]
 }
 
+// ServeHTTP implements the http.Handler
 func (s httpServer[TIn, TOut]) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	in, err := s.decode(req)
