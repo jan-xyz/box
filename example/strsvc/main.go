@@ -102,7 +102,7 @@ func main() {
 
 		// simulate HTTP invocation
 		srv := httptest.NewServer(httpServer)
-		httpResp, err := srv.Client().Post(srv.URL, "binary", bytes.NewReader(marshalledM))
+		httpResp, err := srv.Client().Post(srv.URL, "application/octetstream", bytes.NewReader(marshalledM))
 		if err != nil {
 			panic(err)
 		}
