@@ -12,7 +12,7 @@ func TestChain(t *testing.T) {
 	records := []string{}
 
 	recordingMiddleware := func(name string) Middleware[string, string] {
-		return MiddlewareFunc[string, string](func(next Endpoint[string, string]) Endpoint[string, string] {
+		return Middleware[string, string](func(next Endpoint[string, string]) Endpoint[string, string] {
 			return EndpointFunc[string, string](func(ctx context.Context, req string) (string, error) {
 				records = append(records, fmt.Sprintf("inc-%s", name))
 				resp, err := next.EP(ctx, req)

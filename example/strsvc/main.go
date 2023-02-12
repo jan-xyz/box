@@ -15,7 +15,7 @@ import (
 
 func main() {
 	// setup endpoint with it's middlewares
-	c := box.NewChainBuilder[*strsvcv1.Request, *strsvcv1.Response](
+	c := box.NewChainBuilder(
 		strsvc.LoggingMiddleware,
 	)
 	ep := c.Build(strsvc.NewEndpoint())
