@@ -41,5 +41,14 @@ func TestChain(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "response", resp)
 
-	assert.Equal(t, []string{"inc-first", "inc-second", "inc-third", "request", "out-third", "out-second", "out-first"}, records)
+	expectedRecords := []string{
+		"inc-first",
+		"inc-second",
+		"inc-third",
+		"request",
+		"out-third",
+		"out-second",
+		"out-first",
+	}
+	assert.Equal(t, expectedRecords, records)
 }
