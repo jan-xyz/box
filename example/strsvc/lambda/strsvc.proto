@@ -1,8 +1,13 @@
 syntax = "proto3";
 package strsvc.v1;
+
 option go_package = "./strsvcv1";
 
-message Request {
+service StringService {
+  rpc Casing(CasingRequest) returns (CasingResponse);
+}
+
+message CasingRequest {
   oneof message {
     LowerCase lower_case = 1;
     UpperCase upper_case = 2;
@@ -17,6 +22,6 @@ message UpperCase {
   string input = 1;
 }
 
-message Response {
-string result = 1;
+message CasingResponse {
+  string result = 1;
 }

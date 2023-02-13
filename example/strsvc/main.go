@@ -14,6 +14,8 @@ import (
 	awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
 	boxhttp "github.com/jan-xyz/box/handler/net/http"
 	"go.opentelemetry.io/otel"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -23,7 +25,7 @@ func main() {
 		strsvc.EndpointLogging(),
 		strsvc.EndpointTracing(otel.Tracer("strsvc")),
 	)
-	ep := mw(strsvc.NewEndpoint().EP)
+	ep := mw(strsvc.NewEndpoint())
 
 	// connect endpoint to SQS
 	sqsHandler := awslambdago.NewSQSHandler(
@@ -49,23 +51,23 @@ func main() {
 	)
 
 	// test input
-	requests := []*strsvcv1.Request{
+	requests := []*strsvcv1.CasingRequest{
 		{
-			Message: &strsvcv1.Request_UpperCase{
+			Message: &strsvcv1.CasingRequest_UpperCase{
 				UpperCase: &strsvcv1.UpperCase{
 					Input: "Foo",
 				},
 			},
 		},
 		{
-			Message: &strsvcv1.Request_LowerCase{
+			Message: &strsvcv1.CasingRequest_LowerCase{
 				LowerCase: &strsvcv1.LowerCase{
 					Input: "Bar",
 				},
 			},
 		},
 		{
-			Message: &strsvcv1.Request_LowerCase{
+			Message: &strsvcv1.CasingRequest_LowerCase{
 				LowerCase: &strsvcv1.LowerCase{
 					Input: "",
 				},
@@ -107,5 +109,15 @@ func main() {
 			panic(err)
 		}
 		log.Printf("http: %#v", httpResp)
+
+		// simulate gRPC invocation
+		lis := bufconn.Listen(512 * 1024)
+		s := grpc.NewServer()
+		strsvcv1.RegisterStringServiceServer(s, ep)
+		go func() {
+			if err := s.Serve(lis); err != nil {
+				log.Fatalf("Server exited with error: %v", err)
+			}
+		}()
 	}
 }

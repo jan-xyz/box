@@ -37,7 +37,7 @@ func (s apiGatewayHandler[TIn, TOut]) Handle(ctx context.Context, req *events.AP
 	if err != nil {
 		return s.encodeError(err)
 	}
-	out, err := s.endpoint(ctx, in)
+	out, err := s.endpoint.EP(ctx, in)
 	if err != nil {
 		return s.encodeError(err)
 	}

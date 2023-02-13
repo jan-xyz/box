@@ -35,7 +35,7 @@ func (s httpServer[TIn, TOut]) ServeHTTP(w http.ResponseWriter, req *http.Reques
 		s.encodeError(err, w)
 		return
 	}
-	out, err := s.endpoint(ctx, in)
+	out, err := s.endpoint.EP(ctx, in)
 	if err != nil {
 		s.encodeError(err, w)
 		return

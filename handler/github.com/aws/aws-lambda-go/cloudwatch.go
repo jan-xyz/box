@@ -37,7 +37,7 @@ func (s cloudWatchEventHandler[TIn, TOut]) Handle(ctx context.Context, req *even
 	if err != nil {
 		return s.encodeError(err)
 	}
-	out, err := s.endpoint(ctx, in)
+	out, err := s.endpoint.EP(ctx, in)
 	if err != nil {
 		return s.encodeError(err)
 	}

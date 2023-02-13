@@ -10,9 +10,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+type response = strsvcv1.CasingResponse
+
 var errNoUpper = errors.New("unable to uppercase name")
 
-func EncodeAPIGateway(m *strsvcv1.Response) (*events.APIGatewayProxyResponse, error) {
+func EncodeAPIGateway(m *response) (*events.APIGatewayProxyResponse, error) {
 	resp, err := proto.Marshal(m)
 	if err != nil {
 		return nil, err
@@ -34,7 +36,7 @@ func EncodeErrorAPIGateway(err error) (*events.APIGatewayProxyResponse, error) {
 	}, nil
 }
 
-func EncodeHTTP(m *strsvcv1.Response, w http.ResponseWriter) {
+func EncodeHTTP(m *response, w http.ResponseWriter) {
 	resp, err := proto.Marshal(m)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

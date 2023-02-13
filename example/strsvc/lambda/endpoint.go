@@ -11,35 +11,41 @@ import (
 
 var tracer = otel.Tracer("strsvc")
 
-func NewEndpoint() endpoint {
+func NewEndpoint() *Endpoint {
 	var svc Service = &service{}
 	svc = tracingMiddleware{svc: svc, tracer: tracer}
 	svc = validationMiddleware{svc: svc}
-	return endpoint{svc: svc}
+	return &Endpoint{svc: svc}
 }
 
-type endpoint struct {
+type Endpoint struct {
 	svc Service
+	strsvcv1.StringServiceServer
 }
 
 var errUknown = errors.New("unknown message")
 
-func (e endpoint) EP(ctx context.Context, req *strsvcv1.Request) (*strsvcv1.Response, error) {
+func (e Endpoint) EP(ctx context.Context, req *request) (*response, error) {
 	switch m := req.GetMessage().(type) {
-	case *strsvcv1.Request_LowerCase:
+	case *strsvcv1.CasingRequest_LowerCase:
 		upper, err := e.svc.LowerCase(ctx, m.LowerCase.GetInput())
 		if err != nil {
-			return &strsvcv1.Response{}, err
+			return &response{}, err
 		}
-		return &strsvcv1.Response{Result: upper}, nil
-	case *strsvcv1.Request_UpperCase:
+		return &response{Result: upper}, nil
+	case *strsvcv1.CasingRequest_UpperCase:
 		upper, err := e.svc.UpperCase(ctx, m.UpperCase.GetInput())
 		if err != nil {
-			return &strsvcv1.Response{}, err
+			return &response{}, err
 		}
-		return &strsvcv1.Response{Result: upper}, nil
+		return &response{Result: upper}, nil
 	default:
 		log.Printf("unhandled request: %T", m)
 	}
 	return nil, errUknown
+}
+
+// implementing the GRPC method
+func (e Endpoint) Casing(ctx context.Context, req *request) (*response, error) {
+	return e.EP(ctx, req)
 }

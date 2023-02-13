@@ -10,13 +10,15 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func DecodeSQS(m events.SQSMessage) (*strsvcv1.Request, error) {
+type request = strsvcv1.CasingRequest
+
+func DecodeSQS(m events.SQSMessage) (*request, error) {
 	body, err := base64.StdEncoding.DecodeString(m.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	msg := &strsvcv1.Request{}
+	msg := &request{}
 	err = proto.Unmarshal(body, msg)
 	if err != nil {
 		return nil, err
@@ -24,13 +26,13 @@ func DecodeSQS(m events.SQSMessage) (*strsvcv1.Request, error) {
 	return msg, nil
 }
 
-func DecodeAPIGateway(r *events.APIGatewayProxyRequest) (*strsvcv1.Request, error) {
+func DecodeAPIGateway(r *events.APIGatewayProxyRequest) (*request, error) {
 	body, err := base64.StdEncoding.DecodeString(r.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	msg := &strsvcv1.Request{}
+	msg := &request{}
 	err = proto.Unmarshal(body, msg)
 	if err != nil {
 		return nil, err
@@ -38,7 +40,7 @@ func DecodeAPIGateway(r *events.APIGatewayProxyRequest) (*strsvcv1.Request, erro
 	return msg, nil
 }
 
-func DecodeHTTP(r *http.Request) (*strsvcv1.Request, error) {
+func DecodeHTTP(r *http.Request) (*request, error) {
 	defer func() {
 		err := r.Body.Close()
 		if err != nil {
@@ -50,7 +52,7 @@ func DecodeHTTP(r *http.Request) (*strsvcv1.Request, error) {
 		return nil, err
 	}
 
-	msg := &strsvcv1.Request{}
+	msg := &request{}
 	err = proto.Unmarshal(body, msg)
 	if err != nil {
 		return nil, err
