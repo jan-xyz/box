@@ -17,6 +17,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+var tracer = otel.Tracer("")
+
 func main() {
 	// setup endpoint with it's middlewares
 	mw := box.Chain(
@@ -39,6 +41,7 @@ func main() {
 		strsvc.EncodeErrorAPIGateway,
 		ep,
 	)
+	apiGWHandler = awslambdago.NewAPIGatewayTracingMiddleware(apiGWHandler, tracer)
 
 	// connect to HTTP
 	httpServer := boxhttp.NewHTTPServer(

@@ -5,6 +5,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
+	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func NewAPIGatewayHandler[TIn, TOut any](
@@ -22,7 +25,7 @@ func NewAPIGatewayHandler[TIn, TOut any](
 }
 
 type APIGatewayHandler interface {
-	Handle(ctx context.Context, e *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
+	Handle(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
 }
 
 type apiGatewayHandler[TIn, TOut any] struct {
@@ -44,6 +47,33 @@ func (s apiGatewayHandler[TIn, TOut]) Handle(ctx context.Context, req *events.AP
 	resp, err := s.encode(out)
 	if err != nil {
 		return s.encodeError(err)
+	}
+	return resp, err
+}
+
+func NewAPIGatewayTracingMiddleware(handler APIGatewayHandler, tracer trace.Tracer) APIGatewayHandler {
+	return apiGatewayTracingMiddleware{handler: handler, tracer: tracer}
+}
+
+type apiGatewayTracingMiddleware struct {
+	handler APIGatewayHandler
+	tracer  trace.Tracer
+}
+
+// implements https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/instrumentation/aws-lambda/#api-gateway
+func (s apiGatewayTracingMiddleware) Handle(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
+	ctx, span := s.tracer.Start(ctx, req.Resource, trace.WithAttributes(
+		semconv.HTTPRoute(req.Resource),
+		semconv.FaaSTriggerHTTP,
+		semconv.HTTPScheme(req.Headers["x-forwarded-proto"]),
+		semconv.HTTPMethod(req.HTTPMethod),
+	))
+	defer span.End()
+
+	resp, err := s.handler.Handle(ctx, req)
+	span.SetAttributes(semconv.HTTPStatusCode(resp.StatusCode))
+	if resp.StatusCode >= 500 {
+		span.SetStatus(codes.Error, "")
 	}
 	return resp, err
 }
