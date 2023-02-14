@@ -9,15 +9,11 @@ import (
 
 func NewClouadWatchEventHandler[TIn, TOut any](
 	decode func(*events.CloudWatchEvent) (TIn, error),
-	encode func(TOut) error,
-	encodeError func(error) error,
 	endpoint box.Endpoint[TIn, TOut],
 ) CloudWatchEventHandler {
 	return cloudWatchEventHandler[TIn, TOut]{
-		decode:      decode,
-		encode:      encode,
-		encodeError: encodeError,
-		endpoint:    endpoint,
+		decode:   decode,
+		endpoint: endpoint,
 	}
 }
 
@@ -26,24 +22,18 @@ type CloudWatchEventHandler interface {
 }
 
 type cloudWatchEventHandler[TIn, TOut any] struct {
-	decode      func(*events.CloudWatchEvent) (TIn, error)
-	encode      func(TOut) error
-	encodeError func(error) error
-	endpoint    box.Endpoint[TIn, TOut]
+	decode   func(*events.CloudWatchEvent) (TIn, error)
+	endpoint box.Endpoint[TIn, TOut]
 }
 
 func (s cloudWatchEventHandler[TIn, TOut]) Handle(ctx context.Context, req *events.CloudWatchEvent) error {
 	in, err := s.decode(req)
 	if err != nil {
-		return s.encodeError(err)
+		return err
 	}
-	out, err := s.endpoint(ctx, in)
+	_, err = s.endpoint(ctx, in)
 	if err != nil {
-		return s.encodeError(err)
+		return err
 	}
-	err = s.encode(out)
-	if err != nil {
-		return s.encodeError(err)
-	}
-	return err
+	return nil
 }
