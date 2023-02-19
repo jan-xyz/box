@@ -22,10 +22,10 @@ var tracer = otel.Tracer("")
 func main() {
 	// setup endpoint with it's middlewares
 	mw := box.Chain(
-		strsvc.EndpointLogging(),
-		strsvc.EndpointTracing(otel.Tracer("strsvc")),
+		box.EndpointLogging[*strsvcv1.Request, *strsvcv1.Response](),
+		box.EndpointTracing[*strsvcv1.Request, *strsvcv1.Response](otel.GetTracerProvider()),
 	)
-	ep := mw(strsvc.NewEndpoint().EP)
+	ep := mw(strsvc.NewEndpoint())
 
 	// connect endpoint to SQS
 	sqsHandler := awslambdago.NewSQSHandler(
