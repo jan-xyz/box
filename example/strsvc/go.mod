@@ -15,6 +15,4 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 )
 
-replace (
-	github.com/jan-xyz/box => ../../
-)
+replace github.com/jan-xyz/box => ../../
