@@ -85,7 +85,7 @@ func main() {
 		body := base64.StdEncoding.EncodeToString(marshalledM)
 
 		// simulate SQS invocation
-		sqsResp := sqsHandler.Handle(
+		sqsResp := sqsHandler(
 			context.Background(),
 			&events.SQSEvent{Records: []events.SQSMessage{
 				{Body: body, MessageId: "the message"},
@@ -94,7 +94,7 @@ func main() {
 		log.Printf("sqs: %#v", sqsResp)
 
 		// simulate APIGateway invocation
-		apiGWResp, err := apiGWHandler.Handle(
+		apiGWResp, err := apiGWHandler(
 			context.Background(),
 			&events.APIGatewayProxyRequest{Body: body},
 		)

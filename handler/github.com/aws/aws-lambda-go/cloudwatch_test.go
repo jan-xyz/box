@@ -63,7 +63,7 @@ func Test_CloudWatchEvent_Handle(t *testing.T) {
 				tC.decodeFunc,
 				tC.ep,
 			)
-			err := h.Handle(context.Background(), tC.input)
+			err := h(context.Background(), tC.input)
 
 			tC.wantErr(t, err)
 		})

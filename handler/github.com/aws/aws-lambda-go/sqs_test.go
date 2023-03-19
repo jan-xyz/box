@@ -103,7 +103,7 @@ func Test_SQS_Handle(t *testing.T) {
 				tC.decodeFunc,
 				tC.ep,
 			)
-			got := h.Handle(context.Background(), tC.input)
+			got := h(context.Background(), tC.input)
 
 			assert.Equal(t, tC.want, got)
 		})

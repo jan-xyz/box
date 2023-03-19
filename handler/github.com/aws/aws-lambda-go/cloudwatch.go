@@ -7,33 +7,21 @@ import (
 	"github.com/jan-xyz/box"
 )
 
+type CloudWatchEventHandler func(ctx context.Context, e *events.CloudWatchEvent) error
+
 func NewClouadWatchEventHandler[TIn, TOut any](
 	decode func(*events.CloudWatchEvent) (TIn, error),
 	endpoint box.Endpoint[TIn, TOut],
 ) CloudWatchEventHandler {
-	return cloudWatchEventHandler[TIn, TOut]{
-		decode:   decode,
-		endpoint: endpoint,
+	return func(ctx context.Context, req *events.CloudWatchEvent) error {
+		in, err := decode(req)
+		if err != nil {
+			return err
+		}
+		_, err = endpoint(ctx, in)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-}
-
-type CloudWatchEventHandler interface {
-	Handle(ctx context.Context, e *events.CloudWatchEvent) error
-}
-
-type cloudWatchEventHandler[TIn, TOut any] struct {
-	decode   func(*events.CloudWatchEvent) (TIn, error)
-	endpoint box.Endpoint[TIn, TOut]
-}
-
-func (s cloudWatchEventHandler[TIn, TOut]) Handle(ctx context.Context, req *events.CloudWatchEvent) error {
-	in, err := s.decode(req)
-	if err != nil {
-		return err
-	}
-	_, err = s.endpoint(ctx, in)
-	if err != nil {
-		return err
-	}
-	return nil
 }

@@ -92,7 +92,7 @@ func Test_APIGateway_Handle(t *testing.T) {
 				tC.encodeErrorFunc,
 				tC.ep,
 			)
-			resp, err := h.Handle(context.Background(), tC.input)
+			resp, err := h(context.Background(), tC.input)
 
 			if tC.wantErr {
 				assert.Error(t, err)
