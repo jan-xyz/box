@@ -4,17 +4,23 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 )
 
+var TracerName = "githubc.com/jan-xyz/box"
+
+// EndpointTracing adds tracing for the endpoint. The Span name defaults to "Endpoint".
 func EndpointTracing[TIn, TOut any](tp trace.TracerProvider) Middleware[TIn, TOut] {
-	tracer := tp.Tracer("box")
+	tracer := tp.Tracer(TracerName)
+	spanName := "Endpoint"
 	return func(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut] {
 		return func(ctx context.Context, req TIn) (TOut, error) {
-			ctx, span := tracer.Start(ctx, "Endpoint")
+			ctx, span := tracer.Start(ctx, spanName)
 			defer span.End()
 
 			// first need to convert to `any` to use the type assertion
@@ -35,6 +41,7 @@ func EndpointTracing[TIn, TOut any](tp trace.TracerProvider) Middleware[TIn, TOu
 	}
 }
 
+// EndpointLogging logs the requests and response and errors.
 func EndpointLogging[TIn, TOut any]() Middleware[TIn, TOut] {
 	return func(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut] {
 		return func(ctx context.Context, req TIn) (TOut, error) {
@@ -54,6 +61,32 @@ func EndpointLogging[TIn, TOut any]() Middleware[TIn, TOut] {
 				log.Printf("incoming: %s", val)
 			default:
 				log.Printf("outgoing: %v", val)
+			}
+			return resp, err
+		}
+	}
+}
+
+// EndpointMetrics records RED metrics for your Endpoint. It adds an Endpoint dimension to it.
+// the default dimension value is "Endpoint".
+func EndpointMetrics[TIn, TOut any](mp metric.MeterProvider) Middleware[TIn, TOut] {
+	meter := mp.Meter(TracerName)
+	endpointName := "Endpoint"
+	attrs := attribute.String("endpoint", endpointName)
+	return func(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut] {
+		return func(ctx context.Context, req TIn) (TOut, error) {
+			start := time.Now()
+			if counter, Merr := meter.Int64Counter("requests"); Merr == nil {
+				counter.Add(ctx, 1, attrs)
+			}
+			if hist, Merr := meter.Float64Histogram("latency"); Merr == nil {
+				defer hist.Record(ctx, time.Since(start).Seconds(), attrs)
+			}
+			resp, err := next(ctx, req)
+			if err != nil {
+				if counter, Merr := meter.Int64Counter("errors"); Merr == nil {
+					counter.Add(ctx, 1, attrs)
+				}
 			}
 			return resp, err
 		}

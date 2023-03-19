@@ -14,16 +14,16 @@ import (
 	awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
 	boxhttp "github.com/jan-xyz/box/handler/net/http"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric/global"
 	"google.golang.org/protobuf/proto"
 )
-
-var tracer = otel.Tracer("")
 
 func main() {
 	// setup endpoint with it's middlewares
 	mw := box.Chain(
 		box.EndpointLogging[*strsvcv1.Request, *strsvcv1.Response](),
 		box.EndpointTracing[*strsvcv1.Request, *strsvcv1.Response](otel.GetTracerProvider()),
+		box.EndpointMetrics[*strsvcv1.Request, *strsvcv1.Response](global.MeterProvider()),
 	)
 	ep := mw(strsvc.NewEndpoint())
 
@@ -41,7 +41,7 @@ func main() {
 		strsvc.EncodeErrorAPIGateway,
 		ep,
 	)
-	apiGWHandler = awslambdago.NewAPIGatewayTracingMiddleware(apiGWHandler, tracer)
+	apiGWHandler = awslambdago.NewAPIGatewayTracingMiddleware(apiGWHandler, otel.GetTracerProvider())
 
 	// connect to HTTP
 	httpServer := boxhttp.NewHTTPServer(

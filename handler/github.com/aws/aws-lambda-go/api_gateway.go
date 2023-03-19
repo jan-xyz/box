@@ -51,7 +51,8 @@ func (s apiGatewayHandler[TIn, TOut]) Handle(ctx context.Context, req *events.AP
 	return resp, err
 }
 
-func NewAPIGatewayTracingMiddleware(handler APIGatewayHandler, tracer trace.Tracer) APIGatewayHandler {
+func NewAPIGatewayTracingMiddleware(handler APIGatewayHandler, tp trace.TracerProvider) APIGatewayHandler {
+	tracer := tp.Tracer(box.TracerName)
 	return apiGatewayTracingMiddleware{handler: handler, tracer: tracer}
 }
 
