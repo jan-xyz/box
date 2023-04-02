@@ -85,7 +85,7 @@ func main() {
 		body := base64.StdEncoding.EncodeToString(marshalledM)
 
 		// simulate SQS invocation
-		sqsResp := sqsHandler(
+		sqsResp, _ := sqsHandler(
 			context.Background(),
 			&events.SQSEvent{Records: []events.SQSMessage{
 				{Body: body, MessageId: "the message"},

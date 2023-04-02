@@ -7,8 +7,19 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/stretchr/testify/assert"
 )
+
+func makeSureAPIGatewayHandlerHasCorrectSignature() {
+	h := NewAPIGatewayHandler(
+		func(*events.APIGatewayProxyRequest) (string, error) { return "", nil },
+		func(string) (*events.APIGatewayProxyResponse, error) { return nil, nil },
+		func(error) (*events.APIGatewayProxyResponse, error) { return nil, nil },
+		func(context.Context, string) (string, error) { return "", nil },
+	)
+	lambda.StartHandlerFunc(h)
+}
 
 func Test_APIGateway_Handle(t *testing.T) {
 	testCases := []struct {

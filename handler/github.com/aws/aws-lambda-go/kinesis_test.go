@@ -6,8 +6,17 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/stretchr/testify/assert"
 )
+
+func makeSureKinesisHandlerHasCorrectSignature() {
+	h := NewKinesisHandler(
+		func(events.KinesisEventRecord) (string, error) { return "", nil },
+		func(context.Context, string) (string, error) { return "", nil },
+	)
+	lambda.StartHandlerFunc(h)
+}
 
 func Test_Kinesis_Handle(t *testing.T) {
 	testCases := []struct {
@@ -74,9 +83,10 @@ func Test_Kinesis_Handle(t *testing.T) {
 				tC.decodeFunc,
 				tC.ep,
 			)
-			got := h(context.Background(), tC.input)
+			got, err := h(context.Background(), tC.input)
 
 			assert.Equal(t, tC.want, got)
+			assert.NoError(t, err)
 		})
 	}
 }

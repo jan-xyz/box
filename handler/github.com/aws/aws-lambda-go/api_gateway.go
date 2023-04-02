@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type APIGatewayHandler func(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
+type APIGatewayHandler = func(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
 
 func NewAPIGatewayHandler[TIn, TOut any](
 	decode func(*events.APIGatewayProxyRequest) (TIn, error),

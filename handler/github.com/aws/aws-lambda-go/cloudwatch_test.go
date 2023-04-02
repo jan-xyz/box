@@ -6,8 +6,17 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/stretchr/testify/assert"
 )
+
+func makeSureCloudwatchHandlerHasCorrectSignature() {
+	h := NewClouadWatchEventHandler(
+		func(*events.CloudWatchEvent) (string, error) { return "", nil },
+		func(context.Context, string) (string, error) { return "", nil },
+	)
+	lambda.StartHandlerFunc(h)
+}
 
 func Test_CloudWatchEvent_Handle(t *testing.T) {
 	testCases := []struct {
@@ -63,7 +72,7 @@ func Test_CloudWatchEvent_Handle(t *testing.T) {
 				tC.decodeFunc,
 				tC.ep,
 			)
-			err := h(context.Background(), tC.input)
+			_, err := h(context.Background(), tC.input)
 
 			tC.wantErr(t, err)
 		})
