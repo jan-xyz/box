@@ -1,0 +1,15 @@
+name: Go
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+
+      - run: go build ./...
+
