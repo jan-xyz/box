@@ -8,8 +8,23 @@ jobs:
     steps:
       - name: Git clone the repository
         uses: actions/checkout@v3
-
       - uses: actions/setup-go@v4
-
       - run: go build ./...
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+      - run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+      - run: go vet ./...
