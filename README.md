@@ -1,4 +1,5 @@
 # Box
+[![codecov](https://codecov.io/gh/jan-xyz/box/branch/main/graph/badge.svg?token=261hqevLHY)](https://codecov.io/gh/jan-xyz/box)
 
 Boxing everything in neat little boxes, stack them, combine them, hide them.
 
