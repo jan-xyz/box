@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -41,7 +41,8 @@ func NewSQSHandler[TIn, TOut any](
 }
 
 // implementation of https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/instrumentation/aws-lambda/#sqs
-func NewSQSTracingMiddleware(handler SQSHandler, tracer trace.Tracer) SQSHandler {
+func NewSQSTracingMiddleware(handler SQSHandler, tp trace.TracerProvider) SQSHandler {
+	tracer := tp.Tracer(box.TracerName)
 	return func(ctx context.Context, e *events.SQSEvent) (*events.SQSEventResponse, error) {
 		ctx, span := tracer.Start(ctx, "multiple_sources process", trace.WithAttributes(
 			semconv.FaaSTriggerPubsub,
