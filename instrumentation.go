@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var TracerName = "githubc.com/jan-xyz/box"
+var TracerName = "github.com/jan-xyz/box"
 
 // EndpointTracing adds tracing for the endpoint. The Span name defaults to "Endpoint".
 func EndpointTracing[TIn, TOut any](tp trace.TracerProvider) Middleware[TIn, TOut] {

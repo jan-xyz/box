@@ -8,6 +8,10 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel/attribute"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
 )
 
 func makeSureSQSHandlerHasCorrectSignature() {
@@ -119,4 +123,35 @@ func Test_SQS_Handle(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func Test_SQS_TracingMiddleware(t *testing.T) {
+	// given
+	sr := tracetest.NewSpanRecorder()
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sr))
+	h := NewSQSHandler(
+		true,
+		func(events.SQSMessage) (string, error) { return "", nil },
+		func(context.Context, string) (string, error) { return "", nil },
+	)
+	mw := NewSQSTracingMiddleware(h, tp)
+
+	// when
+	got, err := mw(context.Background(), &events.SQSEvent{})
+
+	// then
+	assert.NoError(t, err)
+	want := &events.SQSEventResponse{}
+	assert.Equal(t, want, got)
+
+	spans := sr.Ended()
+	wantSpanAttributes := []attribute.KeyValue{
+		semconv.FaaSTriggerPubsub,
+		semconv.MessagingOperationProcess,
+		semconv.MessagingSystem("AmazonSQS"),
+		semconv.MessagingSourceKindQueue,
+	}
+	assert.Len(t, spans, 1)
+	assert.ElementsMatch(t, wantSpanAttributes, spans[0].Attributes())
+	assert.Equal(t, "multiple_sources process", spans[0].Name())
 }
