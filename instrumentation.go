@@ -77,15 +77,15 @@ func EndpointMetrics[TIn, TOut any](mp metric.MeterProvider) Middleware[TIn, TOu
 		return func(ctx context.Context, req TIn) (TOut, error) {
 			start := time.Now()
 			if counter, Merr := meter.Int64Counter("requests"); Merr == nil {
-				counter.Add(ctx, 1, attrs)
+				counter.Add(ctx, 1, metric.WithAttributes(attrs))
 			}
 			if hist, Merr := meter.Float64Histogram("latency"); Merr == nil {
-				defer hist.Record(ctx, time.Since(start).Seconds(), attrs)
+				defer hist.Record(ctx, time.Since(start).Seconds(), metric.WithAttributes(attrs))
 			}
 			resp, err := next(ctx, req)
 			if err != nil {
 				if counter, Merr := meter.Int64Counter("errors"); Merr == nil {
-					counter.Add(ctx, 1, attrs)
+					counter.Add(ctx, 1, metric.WithAttributes(attrs))
 				}
 			}
 			return resp, err
