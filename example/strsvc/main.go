@@ -14,7 +14,6 @@ import (
 	awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
 	boxhttp "github.com/jan-xyz/box/handler/net/http"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/metric/global"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -23,7 +22,7 @@ func main() {
 	mw := box.Chain(
 		box.EndpointLogging[*strsvcv1.Request, *strsvcv1.Response](),
 		box.EndpointTracing[*strsvcv1.Request, *strsvcv1.Response](otel.GetTracerProvider()),
-		box.EndpointMetrics[*strsvcv1.Request, *strsvcv1.Response](global.MeterProvider()),
+		box.EndpointMetrics[*strsvcv1.Request, *strsvcv1.Response](otel.GetMeterProvider()),
 	)
 	ep := mw(strsvc.NewEndpoint())
 
