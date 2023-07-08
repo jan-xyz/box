@@ -22,8 +22,8 @@ when they interface with the outside world:
 
 1. transport protocol - e.g. HTTP requests/responses, async message buses,
   gRPC, lambda trigger etc.
-1. data-transfer-object (DTO) - protobuf, JSON, AVRO, database models
-1. internal model - the domain model used internally of the application
+1. data-transfer-object (DTO) - Protocolbuffers, JSON, AVRO, database models
+1. internal model - the domain model used inside of the application
 
 For each of the models there is a distinct layer that provides conversion logic
 domain specific handling and encapsulation.
@@ -43,6 +43,29 @@ the internal model. In fact, the Handler can in most cases be a generic implemen
 that doesn't need to know anything about the underlying models and all dependencies
 can be injected via conversion functions. This allows sharing Handlers, which
 provides for easier implementation of infrastructure best-practices.
+
+### Why should you separate layers?
+
+#### Different Evolution Cadences
+
+The layers have different evolution cadences and creating a lose coupling
+allows for easier migration and maintenance of the individual parts.
+
+The transport is usually very slow moving, especially established protocols like
+HTTP. For the DTO it's not always up to you to decide on changes and coupling
+it strongly with the internal model can turn into month-long refactoring work.
+
+#### Migration to different models
+
+By decoupling DTO from your internal model, you can connect your service
+to different endpoints and handlers. That is useful when the source of your information
+changes, e.g. by consuming from a different message bus. From experience, this
+happens a lot when micro-services migrate from one team to another or new major versions
+are introduced.
+
+#### Re using infrastructure
+
+<!--this is still missing and needs more information -->
 
 This repository also provides a collection of Handlers that can be used off-the-shelf.
 
@@ -167,7 +190,7 @@ and it makes sense to separate it in the same way. Imagine an HTTP service provi
 by, the HTTP layer with retries, jitter, exponential back-offs should be separated
 from the DTO and can be shared across many clients and even teams and companies.
 
-When I get the time I would like to provide an example for that as well.
+<!-- I would like to provide an example for that as well. -->
 
 ## Further Reading and Inspiration
 
