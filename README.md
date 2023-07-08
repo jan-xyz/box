@@ -33,7 +33,7 @@ Terms used in this applications to refer to the different layers are:
 | Layer | Model | Concerns |
 |-------|--------|---------|
 | Handler | transport protocol | Communication patterns, status codes, meta-data extraction, error conversion |
-| Endpoint | DTO | DTO validation & sanitisation, meta-data extraction |
+| Endpoint | DTO | DTO decoding, validation & sanitisation, meta-data extraction |
 | Service | internal model | businesss logic |
 
 A model dependency must only point inwards, such that the Service has no dependency
@@ -112,8 +112,8 @@ and I inverted the order to better represent the flow of data through them.
 | Layer | Model |
 |-------|-------|
 | Service | internal model | businesss logic |
-| Endpoint | DTO | DTO validation & sanitisation, meta-data extraction |
-| Handler | transport protocol | Communication patterns, status codes, meta-data extraction, error conversion |
+| Endpoint | DTO | DTO encoding, meta-data injection |
+| Handler | transport protocol | retries, backoffs, meta-data injection, error handling |
 
 An example for an aws-sdk implementation could look like this
 
