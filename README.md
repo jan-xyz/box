@@ -20,7 +20,7 @@ me.
 The basic idea is that most applications have to deal with different model layers
 when they interface with the outside world:
 
-1. transport protocol - e.g. HTTP requests/responses, asycn message busses,
+1. transport protocol - e.g. HTTP requests/responses, async message buses,
   gRPC, lambda trigger etc.
 1. data-transfer-object (DTO) - protobuf, JSON, AVRO, database models
 1. internal model - the domain model used internally of the application
@@ -50,7 +50,7 @@ This repository also provides a collection of Handlers that can be used off-the-
 
 See the [strsvc](./example/strsvc/) for a full example.
 
-A basic example for encapuslating your service in an endpoint and handler
+A basic example for encapsulating your service in an endpoint and handler
 
 ```go
 import (
