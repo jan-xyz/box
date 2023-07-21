@@ -25,7 +25,7 @@ when they interface with the outside world:
 1. data-transfer-object (DTO) - Protocolbuffers, JSON, AVRO, database models
 1. internal model - the domain model used inside of the application
 
-For each of the models there is a distinct layer that provides conversion logic
+For each of the models there is a distinct layer that provides conversion logic,
 domain specific handling and encapsulation.
 
 Terms used in this applications to refer to the different layers are:
