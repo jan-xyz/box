@@ -7,7 +7,7 @@ Boxing everything in neat little boxes, stack them, combine them, hide them.
 
 The goal of this project is to provide simple abstractions that avoid leaking
 models across boundaries and provide tools to create applications that are convenient
-to reason about and maintainable with a string compatibility with existing libraries.
+to reason about and maintainable with a strict compatibility with existing libraries.
 
 The main idea stems from my experience with [go-kit](https://github.com/go-kit/kit)
 and it inspired the majority of this project. However, over the years I noticed
