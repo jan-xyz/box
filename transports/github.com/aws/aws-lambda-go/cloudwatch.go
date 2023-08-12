@@ -7,12 +7,12 @@ import (
 	"github.com/jan-xyz/box"
 )
 
-type CloudWatchEventHandler = func(ctx context.Context, e *events.CloudWatchEvent) (any, error)
+type CloudWatchEventTransport = func(ctx context.Context, e *events.CloudWatchEvent) (any, error)
 
-func NewClouadWatchEventHandler[TIn, TOut any](
+func NewClouadWatchEventTransport[TIn, TOut any](
 	decode func(*events.CloudWatchEvent) (TIn, error),
 	endpoint box.Endpoint[TIn, TOut],
-) CloudWatchEventHandler {
+) CloudWatchEventTransport {
 	return func(ctx context.Context, req *events.CloudWatchEvent) (any, error) {
 		in, err := decode(req)
 		if err != nil {

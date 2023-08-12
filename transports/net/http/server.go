@@ -12,7 +12,6 @@ func NewHTTPServer[TIn, TOut any](
 	encodeError func(error, http.ResponseWriter),
 	endpoint box.Endpoint[TIn, TOut],
 ) http.HandlerFunc {
-	// ServeHTTP implements the http.Handler
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		in, err := decode(req)

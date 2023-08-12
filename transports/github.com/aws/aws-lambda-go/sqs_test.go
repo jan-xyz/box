@@ -14,8 +14,8 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
 )
 
-func makeSureSQSHandlerHasCorrectSignature() {
-	h := NewSQSHandler(
+func makeSureSQSTransportHasCorrectSignature() {
+	h := NewSQSTransport(
 		true,
 		func(events.SQSMessage) (string, error) { return "", nil },
 		func(context.Context, string) (string, error) { return "", nil },
@@ -112,7 +112,7 @@ func Test_SQS_Handle(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			h := NewSQSHandler(
+			h := NewSQSTransport(
 				tC.fifo,
 				tC.decodeFunc,
 				tC.ep,
@@ -129,7 +129,7 @@ func Test_SQS_TracingMiddleware(t *testing.T) {
 	// given
 	sr := tracetest.NewSpanRecorder()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sr))
-	h := NewSQSHandler(
+	h := NewSQSTransport(
 		true,
 		func(events.SQSMessage) (string, error) { return "", nil },
 		func(context.Context, string) (string, error) { return "", nil },

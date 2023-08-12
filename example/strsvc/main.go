@@ -11,8 +11,8 @@ import (
 	"github.com/jan-xyz/box"
 	strsvc "github.com/jan-xyz/box/example/strsvc/lambda"
 	"github.com/jan-xyz/box/example/strsvc/lambda/proto/strsvcv1"
-	awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
-	boxhttp "github.com/jan-xyz/box/handler/net/http"
+	awslambdago "github.com/jan-xyz/box/transports/github.com/aws/aws-lambda-go"
+	boxhttp "github.com/jan-xyz/box/transports/net/http"
 	"go.opentelemetry.io/otel"
 	"google.golang.org/protobuf/proto"
 )
@@ -27,20 +27,20 @@ func main() {
 	ep := mw(strsvc.NewEndpoint())
 
 	// connect endpoint to SQS
-	sqsHandler := awslambdago.NewSQSHandler(
+	sqsTransport := awslambdago.NewSQSTransport(
 		false,
 		strsvc.DecodeSQS,
 		ep,
 	)
 
 	// connect endpoint to APIGateway
-	apiGWHandler := awslambdago.NewAPIGatewayHandler(
+	apiGWTransport := awslambdago.NewAPIGatewayTransport(
 		strsvc.DecodeAPIGateway,
 		strsvc.EncodeAPIGateway,
 		strsvc.EncodeErrorAPIGateway,
 		ep,
 	)
-	apiGWHandler = awslambdago.NewAPIGatewayTracingMiddleware(apiGWHandler, otel.GetTracerProvider())
+	apiGWTransport = awslambdago.NewAPIGatewayTracingMiddleware(apiGWTransport, otel.GetTracerProvider())
 
 	// connect to HTTP
 	httpServer := boxhttp.NewHTTPServer(
@@ -84,7 +84,7 @@ func main() {
 		body := base64.StdEncoding.EncodeToString(marshalledM)
 
 		// simulate SQS invocation
-		sqsResp, _ := sqsHandler(
+		sqsResp, _ := sqsTransport(
 			context.Background(),
 			&events.SQSEvent{Records: []events.SQSMessage{
 				{Body: body, MessageId: "the message"},
@@ -93,7 +93,7 @@ func main() {
 		log.Printf("sqs: %#v", sqsResp)
 
 		// simulate APIGateway invocation
-		apiGWResp, err := apiGWHandler(
+		apiGWResp, err := apiGWTransport(
 			context.Background(),
 			&events.APIGatewayProxyRequest{Body: body},
 		)
