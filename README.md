@@ -38,10 +38,10 @@ Terms used in this applications to refer to the different layers are:
 
 A model dependency must only point inwards, such that the Service has no dependency
 on the DTO and the Endpoint has no dependency on the transport protocol. In the
-same way a Layer must not jump a layer, such that the Handler knows nothing about
-the internal model. In fact, the Handler can in most cases be a generic implementation
+same way a Layer must not jump a layer, such that the Transport knows nothing about
+the internal model. In fact, the Transport can in most cases be a generic implementation
 that doesn't need to know anything about the underlying models and all dependencies
-can be injected via conversion functions. This allows sharing Handlers, which
+can be injected via conversion functions. This allows sharing Transports, which
 provides for easier implementation of infrastructure best-practices.
 
 ### Why should you separate layers?
@@ -67,7 +67,7 @@ are introduced.
 
 <!--this is still missing and needs more information -->
 
-This repository also provides a collection of Handlers that can be used off-the-shelf.
+This repository also provides a collection of Transports that can be used off-the-shelf.
 
 ## Usage in services
 
@@ -87,7 +87,7 @@ func main() {
   db := database.New()
   s := service.New(db)
   ep := endpoint.New(s)
-  h := awslambdago.NewAPIGatewayHandler(
+  h := awslambdago.NewAPIGatewayTransport(
     endpoint.Decode,
     endpoint.Encode,
     endpoint.EncodeError,
@@ -103,7 +103,7 @@ could look like this:
 
 | Layer | Model |
 |-------|-------|
-| Handler | API Gateway Request & Response |
+| Transport | API Gateway Request & Response |
 | Endpoint | JSON |
 | Service | internal model |
 
@@ -111,7 +111,7 @@ Another example could be a lambda triggered by a DynamoDB Stream
 
  Layer | Model |
 |-------|--------|
-| Handler | DynamoDB Stream Record |
+| Transport | DynamoDB Stream Record |
 | Endpoint | database model |
 | Service | internal model |
 
@@ -119,7 +119,7 @@ or an HTTP Server with a Protobuf body
 
 | Layer | Model |
 |-------|--------|
-| Handler | HTTP Request & Response |
+| Transport | HTTP Request & Response |
 | Endpoint | protobuf model |
 | Service | internal model |
 
@@ -136,7 +136,7 @@ and I inverted the order to better represent the flow of data through them.
 |-------|-------|
 | Service | internal model | businesss logic |
 | Endpoint | DTO | DTO encoding, meta-data injection |
-| Handler | transport protocol | retries, backoffs, meta-data injection, error handling |
+| Transport | transport protocol | retries, backoffs, meta-data injection, error handling |
 
 An example for an aws-sdk implementation could look like this
 
