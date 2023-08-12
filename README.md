@@ -58,7 +58,7 @@ it strongly with the internal model can turn into month-long refactoring work.
 #### Migration to different models
 
 By decoupling DTO from your internal model, you can connect your service
-to different endpoints and handlers. That is useful when the source of your information
+to different endpoints and transports. That is useful when the source of your information
 changes, e.g. by consuming from a different message bus. From experience, this
 happens a lot when micro-services migrate from one team to another or new major versions
 are introduced.
@@ -73,13 +73,13 @@ This repository also provides a collection of Transports that can be used off-th
 
 See the [strsvc](./example/strsvc/) for a full example.
 
-A basic example for encapsulating your service in an endpoint and handler
+A basic example for encapsulating your service in an endpoint and transport
 
 ```go
 import (
 ...
   "github.com/aws/aws-lambda-go/lambda"
-  awslambdago "github.com/jan-xyz/box/handler/github.com/aws/aws-lambda-go"
+  awslambdago "github.com/jan-xyz/box/transports/github.com/aws/aws-lambda-go"
 ...
 )
 

@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func makeSureCloudwatchHandlerHasCorrectSignature() {
-	h := NewClouadWatchEventHandler(
+func makeSureCloudwatchTransportHasCorrectSignature() {
+	h := NewClouadWatchEventTransport(
 		func(*events.CloudWatchEvent) (string, error) { return "", nil },
 		func(context.Context, string) (string, error) { return "", nil },
 	)
@@ -68,7 +68,7 @@ func Test_CloudWatchEvent_Handle(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			h := NewClouadWatchEventHandler(
+			h := NewClouadWatchEventTransport(
 				tC.decodeFunc,
 				tC.ep,
 			)

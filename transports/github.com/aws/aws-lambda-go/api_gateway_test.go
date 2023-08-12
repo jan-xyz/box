@@ -15,8 +15,8 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
 )
 
-func makeSureAPIGatewayHandlerHasCorrectSignature() {
-	h := NewAPIGatewayHandler(
+func makeSureAPIGatewayTransportHasCorrectSignature() {
+	h := NewAPIGatewayTransport(
 		func(*events.APIGatewayProxyRequest) (string, error) { return "", nil },
 		func(string) (*events.APIGatewayProxyResponse, error) { return nil, nil },
 		func(error) (*events.APIGatewayProxyResponse, error) { return nil, nil },
@@ -101,7 +101,7 @@ func Test_APIGateway_Handle(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			h := NewAPIGatewayHandler(
+			h := NewAPIGatewayTransport(
 				tC.decodeFunc,
 				tC.encodeFunc,
 				tC.encodeErrorFunc,
@@ -123,7 +123,7 @@ func Test_APIGateway_TracingMiddleware(t *testing.T) {
 	// given
 	sr := tracetest.NewSpanRecorder()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sr))
-	h := NewAPIGatewayHandler(
+	h := NewAPIGatewayTransport(
 		func(*events.APIGatewayProxyRequest) (string, error) { return "", nil },
 		func(string) (*events.APIGatewayProxyResponse, error) { return &events.APIGatewayProxyResponse{}, nil },
 		func(error) (*events.APIGatewayProxyResponse, error) { return &events.APIGatewayProxyResponse{}, nil },

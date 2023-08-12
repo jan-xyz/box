@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func makeSureKinesisHandlerHasCorrectSignature() {
-	h := NewKinesisHandler(
+func makeSureKinesisTransportHasCorrectSignature() {
+	h := NewKinesisTransport(
 		func(events.KinesisEventRecord) (string, error) { return "", nil },
 		func(context.Context, string) (string, error) { return "", nil },
 	)
@@ -79,7 +79,7 @@ func Test_Kinesis_Handle(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			h := NewKinesisHandler(
+			h := NewKinesisTransport(
 				tC.decodeFunc,
 				tC.ep,
 			)

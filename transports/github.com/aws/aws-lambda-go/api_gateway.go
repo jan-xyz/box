@@ -10,14 +10,14 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type APIGatewayHandler = func(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
+type APIGatewayTransport = func(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
 
-func NewAPIGatewayHandler[TIn, TOut any](
+func NewAPIGatewayTransport[TIn, TOut any](
 	decode func(*events.APIGatewayProxyRequest) (TIn, error),
 	encode func(TOut) (*events.APIGatewayProxyResponse, error),
 	encodeError func(error) (*events.APIGatewayProxyResponse, error),
 	endpoint box.Endpoint[TIn, TOut],
-) APIGatewayHandler {
+) APIGatewayTransport {
 	return func(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
 		in, err := decode(req)
 		if err != nil {
@@ -36,7 +36,7 @@ func NewAPIGatewayHandler[TIn, TOut any](
 }
 
 // implements https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/instrumentation/aws-lambda/#api-gateway
-func NewAPIGatewayTracingMiddleware(handler APIGatewayHandler, tp trace.TracerProvider) APIGatewayHandler {
+func NewAPIGatewayTracingMiddleware(transport APIGatewayTransport, tp trace.TracerProvider) APIGatewayTransport {
 	tracer := tp.Tracer(box.TracerName)
 
 	return func(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
@@ -48,7 +48,7 @@ func NewAPIGatewayTracingMiddleware(handler APIGatewayHandler, tp trace.TracerPr
 		))
 		defer span.End()
 
-		resp, err := handler(ctx, req)
+		resp, err := transport(ctx, req)
 		span.SetAttributes(semconv.HTTPStatusCode(resp.StatusCode))
 		if resp.StatusCode >= 500 {
 			span.SetStatus(codes.Error, "")
