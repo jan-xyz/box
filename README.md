@@ -32,7 +32,7 @@ Terms used in this applications to refer to the different layers are:
 
 | Layer | Model | Concerns |
 |-------|--------|---------|
-| Handler | transport protocol | Communication patterns, status codes, meta-data extraction, error conversion |
+| Transport | transport protocol | Communication patterns, status codes, meta-data extraction, error conversion |
 | Endpoint | DTO | DTO decoding, validation & sanitisation, meta-data extraction |
 | Service | internal model | businesss logic |
 
@@ -186,8 +186,8 @@ import (
 
 In most SDK examples you will not have to deal with the transport protocol and it
 is hidden inside of the SDK. In other cases you will need to provide that yourself
-and it makes sense to separate it in the same way. Imagine an HTTP service provided
-by, the HTTP layer with retries, jitter, exponential back-offs should be separated
+and it makes sense to separate it in the same way. For example, the HTTP layer
+of a service with retries, jitter, exponential back-offs should be separated
 from the DTO and can be shared across many clients and even teams and companies.
 
 <!-- I would like to provide an example for that as well. -->
