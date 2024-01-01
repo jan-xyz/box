@@ -3,7 +3,7 @@ module github.com/jan-xyz/box
 go 1.20
 
 require (
-	github.com/aws/aws-lambda-go v1.41.0
+	github.com/aws/aws-lambda-go v1.43.0
 	go.opentelemetry.io/otel v1.21.0
 	go.opentelemetry.io/otel/metric v1.21.0
 	go.opentelemetry.io/otel/sdk v1.21.0
