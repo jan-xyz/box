@@ -2,6 +2,8 @@ package awslambdago
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
@@ -53,6 +55,21 @@ func NewAPIGatewayTracingMiddleware(transport APIGatewayTransport, tp trace.Trac
 		if resp.StatusCode >= 500 {
 			span.SetStatus(codes.Error, "")
 		}
+		return resp, err
+	}
+}
+
+// adds a default HSTS header to the APIGateway response. If the maxAge is 0, it will default to `63072000` seconds
+func NewAPIGatewayHSTSMiddleware(transport APIGatewayTransport, maxAge time.Duration) APIGatewayTransport {
+	if maxAge == 0 {
+		maxAge = 63072000 * time.Second
+	}
+	return func(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
+		resp, err := transport(ctx, req)
+		if resp.Headers == nil {
+			resp.Headers = map[string]string{}
+		}
+		resp.Headers["strict-transport-security"] = fmt.Sprintf("max-age=%d", int(maxAge.Seconds()))
 		return resp, err
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -146,4 +147,49 @@ func Test_APIGateway_TracingMiddleware(t *testing.T) {
 	assert.Len(t, spans, 1)
 	assert.ElementsMatch(t, wantSpanAttributes, spans[0].Attributes())
 	assert.Equal(t, "some-resource", spans[0].Name())
+}
+
+func Test_APIGateway_HSTSMiddleware(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		maxAge time.Duration
+		want   *events.APIGatewayProxyResponse
+	}{
+		{
+			desc:   "enrich with default value",
+			maxAge: time.Duration(0),
+			want: &events.APIGatewayProxyResponse{
+				StatusCode:      0,
+				Headers:         map[string]string{"strict-transport-security": "max-age=63072000"},
+				Body:            "",
+				IsBase64Encoded: false,
+			},
+		},
+		{
+			desc:   "enrich with value",
+			maxAge: time.Minute,
+			want: &events.APIGatewayProxyResponse{
+				StatusCode:      0,
+				Headers:         map[string]string{"strict-transport-security": "max-age=60"},
+				Body:            "",
+				IsBase64Encoded: false,
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			h := NewAPIGatewayTransport(
+				func(*events.APIGatewayProxyRequest) (string, error) { return "", nil },
+				func(string) (*events.APIGatewayProxyResponse, error) { return &events.APIGatewayProxyResponse{}, nil },
+				func(error) *events.APIGatewayProxyResponse { return &events.APIGatewayProxyResponse{} },
+				func(context.Context, string) (string, error) { return "", nil },
+			)
+			mw := NewAPIGatewayHSTSMiddleware(h, tC.maxAge)
+
+			got, err := mw(context.Background(), nil)
+
+			assert.NoError(t, err)
+			assert.Equal(t, tC.want, got)
+		})
+	}
 }
