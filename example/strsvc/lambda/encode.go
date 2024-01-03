@@ -24,14 +24,14 @@ func EncodeAPIGateway(m *strsvcv1.Response) (*events.APIGatewayProxyResponse, er
 	}, nil
 }
 
-func EncodeErrorAPIGateway(err error) (*events.APIGatewayProxyResponse, error) {
+func EncodeErrorAPIGateway(err error) *events.APIGatewayProxyResponse {
 	if errors.Is(err, errNoUpper) {
-		return &events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest, Body: "cannot uppercase string"}, nil
+		return &events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest, Body: "cannot uppercase string"}
 	}
 	return &events.APIGatewayProxyResponse{
 		StatusCode: http.StatusInternalServerError,
 		Body:       "oops, an error happened",
-	}, nil
+	}
 }
 
 func EncodeHTTP(m *strsvcv1.Response, w http.ResponseWriter) {

@@ -19,7 +19,7 @@ func makeSureAPIGatewayTransportHasCorrectSignature() {
 	h := NewAPIGatewayTransport(
 		func(*events.APIGatewayProxyRequest) (string, error) { return "", nil },
 		func(string) (*events.APIGatewayProxyResponse, error) { return nil, nil },
-		func(error) (*events.APIGatewayProxyResponse, error) { return nil, nil },
+		func(error) *events.APIGatewayProxyResponse { return nil },
 		func(context.Context, string) (string, error) { return "", nil },
 	)
 	lambda.StartHandlerFunc(h)
@@ -30,11 +30,10 @@ func Test_APIGateway_Handle(t *testing.T) {
 		desc            string
 		decodeFunc      func(*events.APIGatewayProxyRequest) (string, error)
 		encodeFunc      func(string) (*events.APIGatewayProxyResponse, error)
-		encodeErrorFunc func(error) (*events.APIGatewayProxyResponse, error)
+		encodeErrorFunc func(error) *events.APIGatewayProxyResponse
 		ep              func(context.Context, string) (string, error)
 		input           *events.APIGatewayProxyRequest
 		want            *events.APIGatewayProxyResponse
-		wantErr         bool
 	}{
 		{
 			desc: "test successfully processing request",
@@ -47,21 +46,19 @@ func Test_APIGateway_Handle(t *testing.T) {
 			ep: func(context.Context, string) (string, error) {
 				return "foo", nil
 			},
-			input:   &events.APIGatewayProxyRequest{},
-			want:    &events.APIGatewayProxyResponse{Body: "foo"},
-			wantErr: false,
+			input: &events.APIGatewayProxyRequest{},
+			want:  &events.APIGatewayProxyResponse{Body: "foo"},
 		},
 		{
 			desc: "test failing to decode doesn't call endpoint",
 			decodeFunc: func(ev *events.APIGatewayProxyRequest) (string, error) {
 				return "", errors.New("boom")
 			},
-			encodeErrorFunc: func(err error) (*events.APIGatewayProxyResponse, error) {
-				return &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+			encodeErrorFunc: func(err error) *events.APIGatewayProxyResponse {
+				return &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}
 			},
-			input:   &events.APIGatewayProxyRequest{Body: "first"},
-			want:    &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError},
-			wantErr: true,
+			input: &events.APIGatewayProxyRequest{Body: "first"},
+			want:  &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError},
 		},
 		{
 			desc: "test failing when the endpoint fails",
@@ -71,14 +68,13 @@ func Test_APIGateway_Handle(t *testing.T) {
 			ep: func(_ context.Context, input string) (string, error) {
 				return "", errors.New("boom")
 			},
-			encodeErrorFunc: func(err error) (*events.APIGatewayProxyResponse, error) {
-				return &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+			encodeErrorFunc: func(err error) *events.APIGatewayProxyResponse {
+				return &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}
 			},
 			input: &events.APIGatewayProxyRequest{
 				Body: "first",
 			},
-			want:    &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError},
-			wantErr: true,
+			want: &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError},
 		},
 		{
 			desc: "test failing when encoding fails",
@@ -88,15 +84,14 @@ func Test_APIGateway_Handle(t *testing.T) {
 			encodeFunc: func(s string) (*events.APIGatewayProxyResponse, error) {
 				return &events.APIGatewayProxyResponse{}, errors.New("boom")
 			},
-			encodeErrorFunc: func(err error) (*events.APIGatewayProxyResponse, error) {
-				return &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+			encodeErrorFunc: func(err error) *events.APIGatewayProxyResponse {
+				return &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}
 			},
 			ep: func(context.Context, string) (string, error) {
 				return "foo", nil
 			},
-			input:   &events.APIGatewayProxyRequest{},
-			want:    &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError},
-			wantErr: true,
+			input: &events.APIGatewayProxyRequest{},
+			want:  &events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError},
 		},
 	}
 	for _, tC := range testCases {
@@ -109,12 +104,8 @@ func Test_APIGateway_Handle(t *testing.T) {
 			)
 			resp, err := h(context.Background(), tC.input)
 
-			if tC.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tC.want, resp)
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, tC.want, resp)
 		})
 	}
 }
@@ -126,7 +117,7 @@ func Test_APIGateway_TracingMiddleware(t *testing.T) {
 	h := NewAPIGatewayTransport(
 		func(*events.APIGatewayProxyRequest) (string, error) { return "", nil },
 		func(string) (*events.APIGatewayProxyResponse, error) { return &events.APIGatewayProxyResponse{}, nil },
-		func(error) (*events.APIGatewayProxyResponse, error) { return &events.APIGatewayProxyResponse{}, nil },
+		func(error) *events.APIGatewayProxyResponse { return &events.APIGatewayProxyResponse{} },
 		func(context.Context, string) (string, error) { return "", nil },
 	)
 	mw := NewAPIGatewayTracingMiddleware(h, tp)
