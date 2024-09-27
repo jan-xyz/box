@@ -5,16 +5,14 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
-	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type SQSTransport = func(ctx context.Context, e *events.SQSEvent) (*events.SQSEventResponse, error)
 
-func NewSQSTransport[TIn, TOut any](
+func NewSQSTransport[TIn any](
 	fifo bool,
 	decode func(events.SQSMessage) (TIn, error),
-	endpoint box.Endpoint[TIn, TOut],
+	endpoint box.Endpoint[TIn, any],
 ) SQSTransport {
 	return func(ctx context.Context, e *events.SQSEvent) (*events.SQSEventResponse, error) {
 		resp := &events.SQSEventResponse{}
@@ -37,20 +35,5 @@ func NewSQSTransport[TIn, TOut any](
 			}
 		}
 		return resp, nil
-	}
-}
-
-// implementation of https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/instrumentation/aws-lambda/#sqs
-func NewSQSTracingMiddleware(transport SQSTransport, tp trace.TracerProvider) SQSTransport {
-	tracer := tp.Tracer(box.TracerName)
-	return func(ctx context.Context, e *events.SQSEvent) (*events.SQSEventResponse, error) {
-		ctx, span := tracer.Start(ctx, "multiple_sources process", trace.WithAttributes(
-			semconv.FaaSTriggerPubsub,
-			semconv.MessagingOperationProcess,
-			semconv.MessagingSystem("AmazonSQS"),
-			semconv.MessagingSourceKindQueue,
-		))
-		defer span.End()
-		return transport(ctx, e)
 	}
 }
