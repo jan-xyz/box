@@ -10,10 +10,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/otel/attribute"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/sdk/trace/tracetest"
-	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
 )
 
 func makeSureAPIGatewayTransportHasCorrectSignature() {
@@ -109,44 +105,6 @@ func Test_APIGateway_Handle(t *testing.T) {
 			assert.Equal(t, tC.want, resp)
 		})
 	}
-}
-
-func Test_APIGateway_TracingMiddleware(t *testing.T) {
-	// given
-	sr := tracetest.NewSpanRecorder()
-	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sr))
-	h := NewAPIGatewayTransport(
-		func(*events.APIGatewayProxyRequest) (string, error) { return "", nil },
-		func(string) (*events.APIGatewayProxyResponse, error) { return &events.APIGatewayProxyResponse{}, nil },
-		func(error) *events.APIGatewayProxyResponse { return &events.APIGatewayProxyResponse{} },
-		func(context.Context, string) (string, error) { return "", nil },
-	)
-	mw := NewAPIGatewayTracingMiddleware(h, tp)
-
-	// when
-	input := &events.APIGatewayProxyRequest{
-		Resource:   "some-resource",
-		HTTPMethod: "POST",
-		Headers:    map[string]string{"x-forwarded-proto": "https"},
-	}
-	got, err := mw(context.Background(), input)
-
-	// then
-	assert.NoError(t, err)
-	want := &events.APIGatewayProxyResponse{}
-	assert.Equal(t, want, got)
-
-	spans := sr.Ended()
-	wantSpanAttributes := []attribute.KeyValue{
-		semconv.HTTPRoute("some-resource"),
-		semconv.FaaSTriggerHTTP,
-		semconv.HTTPScheme("https"),
-		semconv.HTTPMethod("POST"),
-		semconv.HTTPStatusCode(0),
-	}
-	assert.Len(t, spans, 1)
-	assert.ElementsMatch(t, wantSpanAttributes, spans[0].Attributes())
-	assert.Equal(t, "some-resource", spans[0].Name())
 }
 
 func Test_APIGateway_HSTSMiddleware(t *testing.T) {

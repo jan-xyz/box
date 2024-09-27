@@ -26,13 +26,6 @@ func main() {
 	)
 	ep := mw(strsvc.NewEndpoint())
 
-	// connect endpoint to SQS
-	sqsTransport := awslambdago.NewSQSTransport(
-		false,
-		strsvc.DecodeSQS,
-		ep,
-	)
-
 	// connect endpoint to APIGateway
 	apiGWTransport := awslambdago.NewAPIGatewayTransport(
 		strsvc.DecodeAPIGateway,
@@ -40,7 +33,6 @@ func main() {
 		strsvc.EncodeErrorAPIGateway,
 		ep,
 	)
-	apiGWTransport = awslambdago.NewAPIGatewayTracingMiddleware(apiGWTransport, otel.GetTracerProvider())
 
 	// connect to HTTP
 	httpServer := boxhttp.NewHTTPServer(
@@ -82,15 +74,6 @@ func main() {
 			panic(err)
 		}
 		body := base64.StdEncoding.EncodeToString(marshalledM)
-
-		// simulate SQS invocation
-		sqsResp, _ := sqsTransport(
-			context.Background(),
-			&events.SQSEvent{Records: []events.SQSMessage{
-				{Body: body, MessageId: "the message"},
-			}},
-		)
-		log.Printf("sqs: %#v", sqsResp)
 
 		// simulate APIGateway invocation
 		apiGWResp, err := apiGWTransport(

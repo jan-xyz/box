@@ -7,9 +7,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jan-xyz/box"
-	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type APIGatewayTransport = func(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error)
@@ -32,28 +29,6 @@ func NewAPIGatewayTransport[TIn, TOut any](
 		resp, err := encode(out)
 		if err != nil {
 			return encodeError(err), nil
-		}
-		return resp, err
-	}
-}
-
-// implements https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/instrumentation/aws-lambda/#api-gateway
-func NewAPIGatewayTracingMiddleware(transport APIGatewayTransport, tp trace.TracerProvider) APIGatewayTransport {
-	tracer := tp.Tracer(box.TracerName)
-
-	return func(ctx context.Context, req *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-		ctx, span := tracer.Start(ctx, req.Resource, trace.WithAttributes(
-			semconv.HTTPRoute(req.Resource),
-			semconv.FaaSTriggerHTTP,
-			semconv.HTTPScheme(req.Headers["x-forwarded-proto"]),
-			semconv.HTTPMethod(req.HTTPMethod),
-		))
-		defer span.End()
-
-		resp, err := transport(ctx, req)
-		span.SetAttributes(semconv.HTTPStatusCode(resp.StatusCode))
-		if resp.StatusCode >= 500 {
-			span.SetStatus(codes.Error, "")
 		}
 		return resp, err
 	}
