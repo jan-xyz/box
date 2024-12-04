@@ -80,7 +80,7 @@ func EndpointMetrics[TIn, TOut any](mp metric.MeterProvider) Middleware[TIn, TOu
 				counter.Add(ctx, 1, metric.WithAttributes(attrs))
 			}
 			if hist, Merr := meter.Float64Histogram("latency"); Merr == nil {
-				defer hist.Record(ctx, time.Since(start).Seconds(), metric.WithAttributes(attrs))
+				defer func() { hist.Record(ctx, time.Since(start).Seconds(), metric.WithAttributes(attrs)) }()
 			}
 			resp, err := next(ctx, req)
 			if err != nil {
