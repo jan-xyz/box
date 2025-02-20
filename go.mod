@@ -1,6 +1,8 @@
 module github.com/jan-xyz/box
 
-go 1.20
+go 1.24
+
+toolchain go1.24.0
 
 require (
 	github.com/aws/aws-lambda-go v1.47.0

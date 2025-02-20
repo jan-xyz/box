@@ -9,7 +9,7 @@ import (
 
 type CloudWatchEventTransport = func(ctx context.Context, e *events.CloudWatchEvent) (any, error)
 
-func NewClouadWatchEventTransport[TIn, TOut any](
+func NewCloudWatchEventTransport[TIn, TOut any](
 	decode func(*events.CloudWatchEvent) (TIn, error),
 	endpoint box.Endpoint[TIn, TOut],
 ) CloudWatchEventTransport {

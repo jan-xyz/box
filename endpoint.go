@@ -6,12 +6,14 @@ import (
 
 // Endpoint is the generic representation of any endpoint
 // which takes a request and returns a reponse.
-type Endpoint[TIn, TOut any] func(ctx context.Context, req TIn) (TOut, error)
+type Endpoint[TIn, TOut any] = func(ctx context.Context, req TIn) (TOut, error)
+
+type UnaryEndpoint[TIn any] = Endpoint[TIn, any]
 
 // Middleware is an [Endpoint] middleware which can be used to wrap
 // around endpoints and decorate them with auxillary functionality, like
 // request logging, instrumentation, context enrichment etc.
-type Middleware[TIn, TOut any] func(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut]
+type Middleware[TIn, TOut any] = func(next Endpoint[TIn, TOut]) Endpoint[TIn, TOut]
 
 // Chain is a convenience function to chain multiple [Middleware]s together
 // and finally wraps an [Endpoint].
