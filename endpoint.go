@@ -8,8 +8,6 @@ import (
 // which takes a request and returns a reponse.
 type Endpoint[TIn, TOut any] = func(ctx context.Context, req TIn) (TOut, error)
 
-type UnaryEndpoint[TIn any] = Endpoint[TIn, any]
-
 // Middleware is an [Endpoint] middleware which can be used to wrap
 // around endpoints and decorate them with auxillary functionality, like
 // request logging, instrumentation, context enrichment etc.
