@@ -11,7 +11,7 @@ import (
 )
 
 func makeSureCloudwatchTransportHasCorrectSignature() {
-	h := NewClouadWatchEventTransport(
+	h := NewCloudWatchEventTransport(
 		func(*events.CloudWatchEvent) (string, error) { return "", nil },
 		func(context.Context, string) (string, error) { return "", nil },
 	)
@@ -68,7 +68,7 @@ func Test_CloudWatchEvent_Handle(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			h := NewClouadWatchEventTransport(
+			h := NewCloudWatchEventTransport(
 				tC.decodeFunc,
 				tC.ep,
 			)
