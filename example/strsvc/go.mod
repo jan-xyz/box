@@ -1,9 +1,9 @@
 module github.com/jan-xyz/box/example/strsvc
 
-go 1.20
+go 1.22
 
 require (
-	github.com/aws/aws-lambda-go v1.48.0
+	github.com/aws/aws-lambda-go v1.49.0
 	github.com/jan-xyz/box v0.2.0
 	go.opentelemetry.io/otel v1.24.0
 	go.opentelemetry.io/otel/trace v1.24.0
