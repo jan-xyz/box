@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-go@v7
       - run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
 
   lint:
     runs-on: ubuntu-latest
